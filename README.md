@@ -38,7 +38,7 @@ MCU AI Tools 通过 [MCP 协议](https://modelcontextprotocol.io/) 将 AI 助手
 
 ```bash
 # 克隆仓库
-git clone https://github.com/<你的用户名>/mcu-ai-tools.git
+git clone https://github.com/RyanWang-CN/mcu-ai-tools.git
 cd mcu-ai-tools
 
 # 创建并激活虚拟环境
@@ -118,7 +118,26 @@ HIL 子系统实现了**不停止单片机运行**的参数热替换机制，采
 2. **差分 (Delta)** — 只写入改动的参数
 3. **提交 (Commit)** — 通过协议号握手原子切换版本
 
-你的单片机固件需要包含 HIL 注入底座代码（详见目标工程中的 `HIL/` 目录）。
+### 固件集成
+
+将 `HIL/` 和 `RTT/` 目录复制到你的 Keil 工程，添加以下文件到工程：
+
+- `hil_inject.c` / `hil_inject.h` — HIL 注入底座（用户自研）
+- `hil_config_user.h` — 用户配置层，定义你的业务结构体
+- `SEGGER_RTT.c` / `SEGGER_RTT.h` / `SEGGER_RTT_printf.c` / `SEGGER_RTT_Conf.h` — RTT 通信协议栈（感谢 SEGGER Microcontroller GmbH）
+
+集成方法参见 `HIL/example_main.c`，核心三步：
+
+```c
+// 1. 初始化
+HIL_Inject_Init(&hil_cfg);
+
+// 2. 主循环轮询（5-10ms 间隔）
+HIL_Inject_Task();
+
+// 3. 业务代码零开销读取当前参数
+volatile Radar_Params_t *params = &HIL_GET_ACTIVE_CFG()->radar;
+```
 
 ## 项目结构
 
@@ -135,6 +154,16 @@ HIL 子系统实现了**不停止单片机运行**的参数热替换机制，采
 │   ├── injection/             # HIL 参数注入
 │   ├── perception/            # RTT 监控、双向通信
 │   └── rag/                   # 知识检索（预留）
+├── HIL/                       # MCU 侧 HIL 注入底座（固件代码）
+│   ├── hil_inject.c           #   注入逻辑实现
+│   ├── hil_inject.h           #   注入协议头文件
+│   ├── hil_config_user.h      #   用户配置层（定义业务结构体）
+│   └── example_main.c         #   集成示例
+├── RTT/                       # SEGGER RTT 协议栈（固件代码，感谢 SEGGER）
+│   ├── SEGGER_RTT.c
+│   ├── SEGGER_RTT.h
+│   ├── SEGGER_RTT_printf.c
+│   └── SEGGER_RTT_Conf.h
 ├── tests/                     # 单元测试 (pytest)
 │   ├── conftest.py
 │   ├── elf_builder.py
