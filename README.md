@@ -74,6 +74,8 @@ python -m core.hil_parser
 
 ## 使用流程
 
+> 完整指南见 [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
+
 ### 启动 MCP Server
 ```bash
 python mcp_server.py
