@@ -38,7 +38,7 @@ Three skill categories exposed as MCP tools:
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/mcu-ai-tools.git
+git clone https://github.com/RyanWang-CN/mcu-ai-tools.git
 cd mcu-ai-tools
 
 # Create and activate virtual environment
@@ -115,7 +115,26 @@ The HIL subsystem enables **non-intrusive parameter hot-swapping** while the MCU
 2. **Delta** — Write only the changed parameters
 3. **Commit** — Flip version flag via atomic protocol handshake
 
-Your MCU firmware must include the HIL injection stub (see `HIL/` directory in the target project).
+### Firmware Integration
+
+Copy `HIL/` and `RTT/` into your Keil project, then add these source files:
+
+- `hil_inject.c` / `hil_inject.h` — HIL injection stub (custom)
+- `hil_config_user.h` — User config layer, define your own structs
+- `SEGGER_RTT.c` / `SEGGER_RTT.h` / `SEGGER_RTT_printf.c` / `SEGGER_RTT_Conf.h` — RTT protocol stack (thanks to SEGGER Microcontroller GmbH)
+
+See `HIL/example_main.c` for the integration pattern:
+
+```c
+// 1. Initialize
+HIL_Inject_Init(&hil_cfg);
+
+// 2. Poll in main loop (5-10ms interval)
+HIL_Inject_Task();
+
+// 3. Zero-cost parameter read in business logic
+volatile Radar_Params_t *params = &HIL_GET_ACTIVE_CFG()->radar;
+```
 
 ## Project Structure
 
@@ -132,6 +151,16 @@ Your MCU firmware must include the HIL injection stub (see `HIL/` directory in t
 │   ├── injection/             # HIL parameter injection
 │   ├── perception/            # RTT monitoring, communication
 │   └── rag/                   # Knowledge retrieval
+├── HIL/                       # MCU-side HIL injection stub (firmware)
+│   ├── hil_inject.c           #   Injection logic
+│   ├── hil_inject.h           #   Protocol header
+│   ├── hil_config_user.h      #   User config structs
+│   └── example_main.c         #   Integration example
+├── RTT/                       # SEGGER RTT stack (firmware, thanks SEGGER)
+│   ├── SEGGER_RTT.c
+│   ├── SEGGER_RTT.h
+│   ├── SEGGER_RTT_printf.c
+│   └── SEGGER_RTT_Conf.h
 ├── tests/                     # Unit tests (pytest)
 │   ├── conftest.py
 │   ├── elf_builder.py
