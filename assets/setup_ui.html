@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+:root {
+  --bg: #f5f5f7; --card: #fff; --text: #1d1d1f; --muted: #86868b;
+  --accent: #3366ff; --accent-h: #2952cc; --green: #34c759; --red: #ff3b30;
+  --border: #e5e5ea; --border-l: #f0f0f5; --shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+  --radius: 12px; --font: -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.5;
+  -webkit-font-smoothing: antialiased; height: 100vh; display: flex; justify-content: center; align-items: center; }
+
+.app { width: 700px; height: 640px; background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow), 0 0 0 .5px rgba(0,0,0,.06); overflow: hidden; display: flex; flex-direction: column; }
+
+/* ---- header ---- */
+.header { display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+  height: 52px; border-bottom: 1px solid var(--border-l); flex-shrink: 0; }
+.header-l { display: flex; align-items: center; gap: 8px; }
+.header-l svg { opacity: .7; }
+.header-l span { font-size: 13px; font-weight: 600; letter-spacing: -.01em; }
+.steps { display: flex; background: #f0f0f3; border-radius: 8px; padding: 2px; }
+.steps button { border: none; background: none; font-size: 11px; font-weight: 500; padding: 5px 14px;
+  border-radius: 6px; cursor: pointer; color: var(--muted); transition: .2s; font-family: var(--font); }
+.steps button.on { background: #fff; color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.steps button:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ---- main ---- */
+.main { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.page { animation: in .3s ease-out; }
+@keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ---- cards ---- */
+.sec { margin-bottom: 14px; }
+.sec-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); margin-bottom: 6px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px 18px; }
+.card:focus-within { border-color: var(--accent); }
+
+/* ---- inputs ---- */
+.inp { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 12px; font-family: var(--font); color: var(--text); outline: none; transition: .2s;
+  background: #fafafa; }
+.inp:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(51,102,255,.08); background: #fff; }
+.inp::placeholder { color: #c7c7cc; }
+.row { display: flex; gap: 8px; }
+
+/* ---- buttons ---- */
+.btn { padding: 8px 18px; border: none; border-radius: 8px; font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: var(--font); transition: .2s; }
+.btn:active { transform: scale(.97); }
+.btn-p { background: var(--accent); color: #fff; }
+.btn-p:hover { background: var(--accent-h); }
+.btn-p:disabled { opacity: .35; pointer-events: none; }
+.btn-s { background: #fff; border: 1px solid var(--border); color: var(--text); }
+.btn-s:hover { background: #f5f5f7; }
+.btn-s:disabled { opacity: .4; pointer-events: none; }
+
+/* ---- env tags ---- */
+.tags { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.tag { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px;
+  border: 1px solid var(--border-l); background: #fafafa; font-size: 11px; transition: .3s; }
+.tag .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: #d1d1d6; transition: .3s; }
+.tag.ok { border-color: #d1f0dc; background: #f2fdf6; }
+.tag.ok .dot { background: var(--green); box-shadow: 0 0 6px rgba(52,199,89,.4); }
+.tag .val { color: var(--text); font-weight: 500; margin-left: auto; font-size: 11px; }
+
+/* ---- param table ---- */
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 10px; color: var(--muted); font-weight: 600; text-align: left; padding: 6px 8px;
+  text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border-l); }
+td { padding: 6px 8px; border-bottom: 1px solid #f5f5f7; }
+td .inp, td select { padding: 5px 6px; font-size: 12px; }
+select { border: 1px solid var(--border); border-radius: 6px; font-family: var(--font);
+  background: #fafafa; color: var(--text); outline: none; padding: 5px; }
+.del-b { background: none; border: none; color: #c7c7cc; cursor: pointer; font-size: 16px;
+  width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; transition: .15s; }
+.del-b:hover { color: var(--red); background: rgba(255,59,48,.06); }
+.add-b { width: 100%; padding: 7px; background: none; border: 1px dashed var(--border);
+  border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 11px; margin-top: 6px;
+  font-family: var(--font); transition: .15s; }
+.add-b:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---- clients ---- */
+.chks { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.chk-card { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px;
+  border: 1px solid var(--border); cursor: pointer; font-size: 12px; font-weight: 500; transition: .2s; }
+.chk-card.sel { border-color: var(--accent); background: rgba(51,102,255,.04); }
+.chk-card .bullet { width: 6px; height: 6px; border-radius: 50%; }
+.chk-card .check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #d1d1d6;
+  margin-left: auto; display: flex; align-items: center; justify-content: center; transition: .2s; }
+.chk-card.sel .check { border-color: var(--accent); background: var(--accent); }
+.chk-card.sel .check::after { content: ''; width: 4px; height: 8px; border: solid #fff; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); margin-top: -1px; }
+
+/* ---- summary ---- */
+.summary { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.sum-i { display: flex; gap: 6px; padding: 6px 0; font-size: 12px; }
+.sum-i .k { color: var(--muted); min-width: 48px; }
+
+/* ---- progress ---- */
+.track { height: 5px; background: #f0f0f3; border-radius: 99px; margin: 10px 0 14px; overflow: hidden; }
+.bar { height: 100%; background: var(--accent); border-radius: 99px; width: 0;
+  transition: width .5s cubic-bezier(.4,0,.2,1); }
+.step-list { display: flex; flex-direction: column; }
+.step-i { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px;
+  font-size: 12px; color: var(--muted); transition: .2s; }
+.step-i .ico { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; display: flex;
+  align-items: center; justify-content: center; font-size: 10px; border: 1.5px solid #d1d1d6; }
+.step-i.done { color: var(--text); }
+.step-i.done .ico { background: rgba(52,199,89,.12); border-color: var(--green); color: var(--green); }
+.step-i.busy { color: var(--text); }
+.step-i.busy .ico { border-color: var(--accent); border-top-color: transparent; animation: spin .7s linear infinite; }
+.step-i.err { color: var(--red); }
+.step-i.err .ico { border-color: var(--red); color: var(--red); }
+.step-i.skip { color: #c7c7cc; }
+.step-i .msg { font-size: 11px; color: var(--muted); margin-left: auto; }
+.step-i.err .msg { color: var(--red); }
+.step-i .retry { font-size: 10px; color: var(--accent); cursor: pointer; margin-left: 6px; display: none; }
+.step-i.err .retry { display: inline; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- footer ---- */
+.footer { display: flex; justify-content: space-between; padding: 12px 24px;
+  border-top: 1px solid var(--border-l); flex-shrink: 0; }
+
+/* ---- modal ---- */
+.mo { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 99;
+  align-items: center; justify-content: center; }
+.mo.sh { display: flex; }
+.mo .bx { background: var(--card); border-radius: 14px; padding: 20px 24px; width: 480px;
+  max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.15); animation: pop .3s; }
+@keyframes pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
+.mo pre { background: #1e1e2a; color: #e1e1ed; padding: 14px 16px; border-radius: 8px;
+  font-size: 11px; line-height: 1.6; overflow-x: auto; margin: 10px 0; font-family: "SF Mono","JetBrains Mono",monospace; }
+.mo h3 { font-size: 15px; margin-bottom: 4px; }
+.mo .note { font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+<div class="header">
+  <div class="header-l">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3366ff" stroke-width="1.8">
+      <rect x="2" y="4" width="20" height="13" rx="2"/><rect x="6" y="7" width="12" height="7" rx="1" opacity=".3" fill="#3366ff"/>
+      <circle cx="12" cy="10.5" r="1.5" fill="#3366ff"/></svg>
+    <span>McuPilot</span>
+  </div>
+  <div class="steps">
+    <button class="on" onclick="showPage(0)">工程设置</button>
+    <button onclick="showPage(1)" disabled>部署发布</button>
+  </div>
+</div>
+
+<div class="main" id="main"></div>
+
+<div class="footer" id="ft">
+  <button class="btn btn-s" disabled onclick="prev()">← 上一步</button>
+  <div id="ftR"></div>
+</div>
+
+<div class="mo" id="modal"></div>
+</div>
+
+<script>
+// ---- state ----
+var st = { pg: 0, busy: false,
+  path: '',
+  env: { chip:'idle', keil:'idle', jlink:'idle', chipV:'', keilV:'', jlinkV:'' },
+  params: [],
+  clients: ['Claude Code','Roo Code'],
+  deploy: { state: 'idle', steps:[] }
+};
+var types = ['uint8_t','uint16_t','uint32_t','int8_t','int16_t','int32_t','float'];
+var stepNames = [
+  '生成 hil_config_user.h','复制 HIL/RTT 到工程','COM 注入 Keil 工程',
+  '编译工程','解析内存字典','注册 MCP'
+];
+var pId = 1;
+
+// ---- init ----
+st.params.push({id:pId++,name:'threshold',type:'uint32_t',value:'8000'});
+st.params.push({id:pId++,name:'gain',type:'uint32_t',value:'45'});
+st.params.push({id:pId++,name:'velocity_min',type:'int16_t',value:'-100'});
+
+// ---- render ----
+function mkP1() {
+  var p = st.params.map(function(r,i){ return '<tr>'+
+    '<td><input class="inp" value="'+esc(r.name)+'" onchange="upParam('+i+',\'name\',this.value)"></td>'+
+    '<td><select onchange="upParam('+i+',\'type\',this.value)">'+types.map(function(t){ return '<option'+(t===r.type?' selected':'')+'>'+t+'</option>' }).join('')+'</select></td>'+
+    '<td><input class="inp" value="'+esc(r.value)+'" onchange="upParam('+i+',\'value\',this.value)" style="width:80px"></td>'+
+    '<td><button class="del-b" onclick="delParam('+i+')">&times;</button></td>'+
+  '</tr>'; }).join('');
+  if(!st.params.length) p='<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--muted)">暂无参数 — 点击下方添加</td></tr>';
+
+  var cl = ['Claude Code','Roo Code','Codex CLI'].map(function(c){ return '<div class="chk-card'+(st.clients.includes(c)?' sel':'')+
+    '" onclick="togCli(\''+c+'\')"><span class="bullet" style="background:'+(c==='Claude Code'?'#f97316':c==='Roo Code'?'#10b981':'#3b82f6')+'"></span>'+c+'<span class="check"></span></div>'; }).join('');
+
+  return '<div class="page"><div class="sec"><div class="sec-lbl">工程路径</div><div class="card"><div class="row">'+
+    '<input class="inp" placeholder="输入或浏览 Keil 工程目录..." value="'+esc(st.path)+'" oninput="onPath(this.value)">'+
+    '<button class="btn btn-s" onclick="browse()">浏览</button></div></div></div>'+
+    '<div class="sec"><div class="sec-lbl">环境</div><div class="card"><div class="tags">'+
+    tagH('芯片',st.env.chip,st.env.chipV)+tagH('Keil MDK',st.env.keil,st.env.keilV)+tagH('J-Link',st.env.jlink,st.env.jlinkV)+
+    '</div></div></div>'+
+    '<div class="sec"><div class="sec-lbl">可热修参数 &middot; '+st.params.length+' 项</div><div class="card">'+
+    '<table><tr><th>变量名</th><th>类型</th><th>默认值</th><th></th></tr>'+p+'</table>'+
+    '<button class="add-b" onclick="addParam()">+ 添加参数</button></div></div>'+
+    '<div class="sec"><div class="sec-lbl">AI 客户端</div><div class="card"><div class="chks">'+cl+'</div></div></div></div>';
+}
+
+function tagH(lbl,st,v) {
+  var cls='',dot='<span class="dot"></span>',content=lbl+'<span class="val">--</span>';
+  if(st==='ok') { cls=' tag ok'; dot='<span class="dot"></span>'; content=lbl+'<span class="val">'+esc(v)+'</span>'; }
+  if(st==='err') { cls=''; dot='<span class="dot" style="background:#ff3b30"></span>'; content=lbl+'<span class="val" style="color:#ff3b30">未检测到</span>'; }
+  return '<div class="tag'+cls+'">'+dot+content+'</div>';
+}
+
+function mkP2() {
+  var summary = ''+
+    sumI('工程',st.path)+sumI('芯片',st.env.chipV)+
+    sumI('参数',st.params.length+' 个 ('+st.params.map(function(p){return p.name}).join(', ')+')')+
+    sumI('客户端',st.clients.join(', '));
+
+  var steps = stepNames.map(function(s,i){
+    var si = st.deploy.steps[i] || {status:'pending',msg:''};
+    var cls='',ico='<span class="ico">'+(i+1)+'</span>',msg='',retry='';
+    if(si.status==='done') { cls=' done'; ico='<span class="ico">&#10003;</span>'; msg=si.msg; }
+    else if(si.status==='busy') { cls=' busy'; ico='<span class="ico"></span>'; }
+    else if(si.status==='err') { cls=' err'; ico='<span class="ico">&times;</span>'; msg=si.msg; retry='<span class="retry" onclick="retry('+i+')">重试</span>'; }
+    else if(si.status==='skip') { cls=' skip'; ico='<span class="ico">-</span>'; msg=si.msg; }
+    return '<div class="step-i'+cls+'">'+ico+s+'<span class="msg">'+msg+'</span>'+retry+'</div>';
+  }).join('');
+
+  var pct = 0;
+  st.deploy.steps.forEach(function(s){ if(s.status==='done'||s.status==='skip'||s.status==='err') pct++; });
+  pct = Math.round(pct / stepNames.length * 100);
+
+  var btnT = st.deploy.state==='done'?'查看报告':st.deploy.state==='busy'?'部署中...':'开始部署';
+  var btnHtml = '<button class="btn btn-p" id="dBtn" style="padding:10px 32px;font-size:13px" '+
+    (st.deploy.state==='busy'?'disabled':'')+' onclick="deploy()">'+btnT+'</button>';
+
+  return '<div class="page"><div class="sec"><div class="sec-lbl">部署摘要</div><div class="card"><div class="summary">'+summary+'</div></div></div>'+
+    '<div style="text-align:center;padding:6px 0 10px">'+btnHtml+'</div>'+
+    '<div class="sec"><div class="sec-lbl">进度 &middot; '+pct+'%</div><div class="card">'+
+    '<div class="track"><div class="bar" style="width:'+pct+'%"></div></div>'+
+    '<div class="step-list">'+steps+'</div></div></div></div>';
+}
+
+function sumI(k,v){ return '<div class="sum-i"><span class="k">'+k+'</span><span>'+esc(v||'--')+'</span></div>'; }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function render() {
+  document.getElementById('main').innerHTML = st.pg===0 ? mkP1() : mkP2();
+  var btns = document.querySelectorAll('.steps button');
+  btns[0].classList.toggle('on',st.pg===0); btns[1].classList.toggle('on',st.pg===1);
+  var ok = st.env.chip==='ok' && st.clients.length>0;
+  btns[1].disabled = !ok;
+  document.getElementById('ftR').innerHTML = st.pg===0
+    ? '<button class="btn btn-p" '+(!ok?'disabled':'')+' onclick="showPage(1)">下一步 →</button>'
+    : '<button class="btn btn-s" onclick="showPage(0)">← 上一步</button>';
+}
+
+function showPage(n) { st.pg=n; render(); }
+function prev() { if(st.pg>0&&!st.busy) showPage(st.pg-1); }
+
+// ---- env ----
+var envTimer;
+function onPath(v) { st.path=v; clearTimeout(envTimer); envTimer=setTimeout(runEnv,600); }
+function runEnv() {
+  if(!st.path) return; st.env.chip='busy';st.env.keil='busy';st.env.jlink='busy';render();
+  // TODO: replace with real pywebview js_api call
+  setTimeout(function(){
+    st.env.chip='ok';st.env.chipV='HC32F460';
+    st.env.keil='ok';st.env.keilV='C:\\Keil_v5\\UV4';
+    st.env.jlink='ok';st.env.jlinkV='SN 801025438, 3.31V';
+    render();
+  },800);
+}
+function browse() {
+  // TODO: pywebview.api.browse_folder()
+  st.path = 'C:\\Projects\\HC32F460_Radar';
+  runEnv();
+}
+
+// ---- params ----
+function addParam() { st.params.push({id:pId++,name:'new_var',type:'uint32_t',value:'0'}); render(); }
+function delParam(i) { st.params.splice(i,1); render(); }
+function upParam(i,k,v) { st.params[i][k]=v; }
+
+function togCli(c) {
+  var idx = st.clients.indexOf(c);
+  if(idx>=0) { if(st.clients.length>1) st.clients.splice(idx,1); }
+  else st.clients.push(c);
+  render();
+}
+
+// ---- deploy ----
+async function deploy() {
+  if(st.deploy.state==='done') { showModal(); return; }
+  st.busy=true; st.deploy.state='busy';
+  st.deploy.steps = stepNames.map(function(){ return {status:'pending',msg:''}; });
+  render();
+  for(var i=0;i<stepNames.length;i++) {
+    // dep chain
+    if(i===3 && st.deploy.steps[2].status!=='done') { st.deploy.steps[i]={status:'skip',msg:'注入失败，编译跳过'}; render(); continue; }
+    if(i===4 && st.deploy.steps[3].status!=='done') { st.deploy.steps[i]={status:'skip',msg:'无编译产物，解析跳过'}; render(); continue; }
+    st.deploy.steps[i]={status:'busy',msg:''}; render();
+    await sleep(700 + Math.random()*400);
+    st.deploy.steps[i]={status:'done',msg:['已生成 HIL 头文件','已复制 8 个源文件','完成 Keil 工程组注入','编译通过 (0 errors, 2 warnings)','解析出 '+(st.params.length+5)+' 个符号','已写入 '+st.clients.length+' 个客户端配置'][i]};
+    render();
+    await sleep(200);
+  }
+  st.deploy.state='done'; st.busy=false; render();
+  setTimeout(showModal, 500);
+}
+function retry(i) { st.deploy.state='idle'; st.busy=false; for(var k=i;k<st.deploy.steps.length;k++) st.deploy.steps[k]={status:'pending',msg:''}; deploy(); }
+
+// ---- modal ----
+function showModal() {
+  var code = '#include "hil_config_user.h"\n#include "hil_inject.h"\n\nint main(void) {\n    // ... 硬件初始化 ...\n\n    HIL_InjectConfig_t cfg = {\n        .buf_a = HIL_CFG_A,\n        .buf_b = HIL_CFG_B,\n        .buf_size = HIL_CFG_SIZE,\n        .p_version = HIL_P_VER,\n        .p_active_idx = HIL_P_IDX,\n    };\n    HIL_Inject_Init(&cfg);\n\n    for (;;) {\n        HIL_Inject_Task();\n        // ... 业务代码 ...\n    }\n}';
+  var html = '<div class="bx">'+
+    '<h3>部署完成</h3><p class="note">在你的 main.c 中添加以下代码即可使用 HIL 热注入功能：</p>'+
+    '<pre>'+esc(code)+'</pre><p class="note">完整范例 &#8594; HIL/example_main.c</p>'+
+    '<div style="text-align:right;margin-top:12px"><button class="btn btn-p" onclick="closeModal()">我知道了</button></div></div>';
+  var mo = document.getElementById('modal'); mo.innerHTML = html; mo.classList.add('sh');
+}
+function closeModal() { document.getElementById('modal').classList.remove('sh'); }
+function sleep(ms) { return new Promise(function(r){ setTimeout(r,ms); }); }
+
+document.getElementById('modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+render();
+</script>
+</body>
+</html>

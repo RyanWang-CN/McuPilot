@@ -7,7 +7,7 @@ import os
 import json
 import time
 
-# 【动态寻址终极修复】：脚本在 skills/injection 下，需要向上退两级回到 MCU_AI_Tools 根目录
+# 【动态寻址终极修复】：脚本在 skills/injection 下，需要向上退两级回到 McuPilot 根目录
 TOOL_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 if TOOL_ROOT not in sys.path:
     sys.path.insert(0, TOOL_ROOT)

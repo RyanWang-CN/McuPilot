@@ -1,8 +1,8 @@
-# MCU AI Tools
+# McuPilot
 
 > AI-powered MCU automation gateway — control, debug, and test embedded systems through natural language.
 
-MCU AI Tools bridges AI assistants (Claude Code, Roo Code, etc.) with MCU hardware via the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). It turns AI into the "brain" of your embedded development workflow, capable of compiling firmware, flashing, reading sensor data, injecting HIL test parameters, and hardware debugging — all through natural language commands.
+McuPilot bridges AI assistants (Claude Code, Roo Code, etc.) with MCU hardware via the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). It turns AI into the "brain" of your embedded development workflow, capable of compiling firmware, flashing, reading sensor data, injecting HIL test parameters, and hardware debugging — all through natural language commands.
 
 ## Architecture
 
@@ -38,8 +38,8 @@ Three skill categories exposed as MCP tools:
 
 ```bash
 # Clone the repository
-git clone https://github.com/RyanWang-CN/mcu-ai-tools.git
-cd mcu-ai-tools
+git clone https://github.com/RyanWang-CN/mcupilot.git
+cd mcupilot
 
 # Create and activate virtual environment
 python -m venv venv

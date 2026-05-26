@@ -1,6 +1,6 @@
 #Requires -Version 5.0
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "  MCU AI Tools - 环境安装脚本 (PowerShell)" -ForegroundColor Cyan
+Write-Host "  McuPilot - 环境安装脚本 (PowerShell)" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 

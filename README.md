@@ -1,8 +1,8 @@
-# MCU AI Tools
+# McuPilot
 
 > AI 驱动的单片机自动化网关 — 通过自然语言控制、调试和测试嵌入式系统。
 
-MCU AI Tools 通过 [MCP 协议](https://modelcontextprotocol.io/) 将 AI 助手（Claude Code、Roo Code 等）与单片机硬件连接起来。它把 AI 变成嵌入式开发的"大脑"，能够完成编译固件、烧录、传感器数据读取、HIL 测试参数注入、硬件调试等操作 — 全通过自然语言指令完成。
+McuPilot 通过 [MCP 协议](https://modelcontextprotocol.io/) 将 AI 助手（Claude Code、Roo Code 等）与单片机硬件连接起来。它把 AI 变成嵌入式开发的"大脑"，能够完成编译固件、烧录、传感器数据读取、HIL 测试参数注入、硬件调试等操作 — 全通过自然语言指令完成。
 
 ## 架构
 
@@ -38,8 +38,8 @@ MCU AI Tools 通过 [MCP 协议](https://modelcontextprotocol.io/) 将 AI 助手
 
 ```bash
 # 克隆仓库
-git clone https://github.com/RyanWang-CN/mcu-ai-tools.git
-cd mcu-ai-tools
+git clone https://github.com/RyanWang-CN/mcupilot.git
+cd mcupilot
 
 # 创建并激活虚拟环境
 python -m venv venv

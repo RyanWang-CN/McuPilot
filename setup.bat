@@ -1,9 +1,9 @@
 @echo off
 chcp 65001 >nul
-title MCU AI Tools Setup
+title McuPilot Setup
 
 echo ============================================
-echo   MCU AI Tools - 环境安装脚本 (CMD)
+echo   McuPilot - 环境安装脚本 (CMD)
 echo ============================================
 echo.
 

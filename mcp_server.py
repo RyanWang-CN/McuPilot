@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 华大单片机 HIL 全局自动化网关 (Global MCP Server)
-存放位置：D:/MCU_AI_Tools/mcp_server.py 
+存放位置：D:/McuPilot/mcp_server.py 
 """
 import subprocess
 import os
@@ -10,9 +10,9 @@ import json
 from mcp.server.fastmcp import FastMCP
 
 # 初始化 MCP 服务器
-mcp = FastMCP("HDSC_HIL_Global")
+mcp = FastMCP("McuPilot_Server")
 
-# 获取工具箱的绝对根目录 (D:\MCU_AI_Tools)
+# 获取工具箱的绝对根目录 (D:\McuPilot)
 TOOLS_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 def run_module(module_name, extra_args=None):
@@ -26,7 +26,7 @@ def run_module(module_name, extra_args=None):
         env = os.environ.copy()
         env['PYTHONIOENCODING'] = 'utf-8'
         
-        # 【关键 1】：强行把 D:\MCU_AI_Tools 加入环境变量
+        # 【关键 1】：强行把 D:\McuPilot 加入环境变量
         # 这样无论脚本在哪，都能顺利 from core.mcu_mem_ctrl import xxx
         if 'PYTHONPATH' in env:
             env['PYTHONPATH'] = f"{TOOLS_ROOT};{env['PYTHONPATH']}"

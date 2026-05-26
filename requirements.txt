@@ -1,5 +1,5 @@
 mcp>=1.0.0
-pylink>=0.3.3
+pylink-square>=1.0.0
 pyelftools>=0.31
 pyyaml>=6.0
 python-dotenv>=1.0.0

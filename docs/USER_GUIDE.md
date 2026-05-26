@@ -1,4 +1,4 @@
-# MCU AI Tools 使用指南
+# McuPilot 使用指南
 
 > 从零跑通：编译烧录 → 读变量 → HIL 热注入
 
@@ -10,8 +10,8 @@
 ## 第二步：拉代码装环境
 
 ```bash
-git clone https://github.com/RyanWang-CN/mcu-ai-tools.git
-cd mcu-ai-tools
+git clone https://github.com/RyanWang-CN/mcupilot.git
+cd mcupilot
 setup.bat          # Windows 一键搞定
 ```
 
@@ -37,9 +37,9 @@ python mcp_server.py
 ```json
 {
   "mcpServers": {
-    "mcu-ai-tools": {
+    "mcupilot": {
       "command": "python",
-      "args": ["C:/Users/Administrator/Desktop/MCU_AI_Tools/mcp_server.py"]
+      "args": ["C:/Users/Administrator/Desktop/McuPilot/mcp_server.py"]
     }
   }
 }
