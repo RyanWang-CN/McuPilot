@@ -1,0 +1,57 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+  background:#f5f5f7;display:flex;justify-content:center;align-items:center;height:100vh}
+.card{width:440px;background:#fafafc;border:1px solid #e0e0e6}
+.top{padding:32px 34px 18px;display:flex;align-items:center;gap:16px}
+.top img{width:64px;height:64px;border-radius:8px;flex-shrink:0}
+.top h1{font-size:20px;font-weight:800;color:#1a1a24;letter-spacing:.04em}
+.top p{font-size:8px;color:#9a9aa8;margin-top:2px}
+.logs{padding:14px 34px 0;font-family:Consolas,monospace;font-size:9px;color:#888}
+.logs div{padding:2px 0}
+.bot{padding:14px 34px 20px}
+.track{height:3px;background:#e8e8ee;border-radius:99px;margin-bottom:4px;overflow:hidden}
+.bar{height:100%;width:0;background:#ea580c;border-radius:99px;transition:width .4s}
+.pct{text-align:right;font-size:8px;font-family:Consolas,monospace;color:#a0a0b0}
+.btns{display:none;text-align:center;padding:0 34px 16px;gap:12px}
+.btns.show{display:flex;justify-content:center}
+.btns span{font-size:10px;font-family:"Microsoft YaHei",sans-serif;cursor:pointer;padding:4px 4px;transition:.15s}
+.btns .inst{color:#ea580c}.btns .inst:hover{color:#c04a0a}
+.btns .quit{color:#aaa}.btns .quit:hover{color:#666}
+</style></head><body>
+<div class="card">
+  <div class="top">
+    <img src="../mcupilot_iconsp.svg" alt="">
+    <div><h1>MCUPILOT</h1><p>RyanWang  ·  MIT License  © 2026</p></div>
+  </div>
+  <div class="logs" id="logs"></div>
+  <div class="btns" id="btns">
+    <span class="inst" id="btnInstall">安装</span>
+    <span class="quit" id="btnExit">退出</span>
+  </div>
+  <div class="bot">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pct" id="pct">0%</div>
+  </div>
+</div>
+<script>
+var g={};
+function log(text,color){var d=document.createElement('div');d.textContent=text;d.style.color=color||'#888';document.getElementById('logs').appendChild(d)}
+function bar(pct){document.getElementById('bar').style.width=pct+'%';document.getElementById('pct').textContent=pct+'%'}
+function showBtns(show){
+  var el=document.getElementById('btns');
+  el.classList.toggle('show',show);
+  document.getElementById('btnInstall').onclick=function(){
+    el.classList.remove('show');g.onInstall&&g.onInstall();
+  };
+  document.getElementById('btnExit').onclick=function(){
+    g.onExit&&g.onExit();
+  };
+}
+window.onSplashLog=function(i,color,text){log(text,color)}
+window.onSplashBar=function(pct){bar(pct)}
+window.onSplashBtns=function(show){showBtns(show)}
+window.onSplashDone=function(){}
+</script>
+</body></html>
