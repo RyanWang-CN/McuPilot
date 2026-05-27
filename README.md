@@ -1,7 +1,7 @@
 # McuPilot
 
 <p align="center">
-  <img src="mcupilot_icon.svg" width="120" alt="McuPilot Icon"/>
+  <img src="mcupilot_icon.svg" width="200" alt="McuPilot Icon"/>
 </p>
 
 <p align="center">
