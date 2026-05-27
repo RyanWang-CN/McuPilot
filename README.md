@@ -42,13 +42,23 @@ McuPilot 通过 [MCP 协议](https://modelcontextprotocol.io/) 将 AI 助手（C
 ## 架构
 
 ```mermaid
-flowchart LR
-    A[<b>Setup Wizard</b><br/>PyWebView GUI<br/>一次性初始化] -->|环境就绪| B[<b>MCP Server</b><br/>FastMCP 网关<br/>AI↔MCU 协议桥梁]
-    B <-->|自然语言| C[<b>AI 客户端</b><br/>Claude Code / Roo Code<br/>Codex CLI]
-    B -->|J-Link SWD| D[<b>MCU 硬件</b><br/>华大 HC32 系列<br/>M0/M4 内核]
-    A -.->|环境审计| E[<b>宿主机 Python</b><br/>依赖自动补全]
-    B -->|读写| F[<b>固件底座</b><br/>HIL 热注入 + RTT 日志]
-    F --> D
+%%{init: {'theme': 'default', 'themeVariables': { 'primaryColor': '#ea580c', 'edgeLabelBackground':'#fff', 'tertiaryColor': '#f5f5f7'}}}%%
+flowchart TB
+    subgraph 使用者
+        C[<b>AI 客户端</b><br/>Claude Code / Roo Code / Codex CLI]
+    end
+    subgraph McuPilot 工具链
+        A[<b>Setup Wizard</b><br/>PyWebView GUI<br/>一次性项目初始化]
+        B[<b>MCP Server</b><br/>FastMCP 网关<br/>AI↔MCU 协议桥梁]
+        F[<b>固件底座</b><br/>HIL 热注入 + RTT 日志]
+    end
+    subgraph 硬件层
+        D[<b>MCU 硬件</b><br/>华大 HC32 系列 · M0/M4 内核]
+    end
+    A -->|环境就绪| B
+    C <-->|MCP 协议| B
+    B -->|J-Link SWD| D
+    F -.->|运行于| D
 ```
 
 三类技能以 MCP Tool 的形式暴露给 AI：
