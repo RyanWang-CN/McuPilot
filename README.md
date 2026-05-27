@@ -10,6 +10,9 @@
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License"/>
   <img src="https://img.shields.io/badge/MCU-华大HC32-orange" alt="MCU"/>
   <img src="https://img.shields.io/badge/protocol-MCP-blueviolet" alt="MCP"/>
+  <img src="https://img.shields.io/badge/J--Link-SEGGER-00a87e" alt="J-Link"/>
+  <img src="https://img.shields.io/badge/Keil-MDK5-1b998b" alt="Keil"/>
+  <img src="https://img.shields.io/badge/core-M0%20~%20M4-ff6b35" alt="Core"/>
 </p>
 
 > AI 驱动的单片机自动化网关 — 通过自然语言控制、调试和测试嵌入式系统。
