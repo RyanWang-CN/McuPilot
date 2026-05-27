@@ -228,7 +228,8 @@ def _run_py_module(module, cwd, tools_root, args=None, python_path=None):
     env["PYTHONIOENCODING"] = "utf-8"
     try:
         r = subprocess.run(cmd, cwd=cwd, env=env, capture_output=True,
-            text=True, timeout=150, creationflags=subprocess.CREATE_NO_WINDOW)
+            encoding='utf-8', errors='replace', text=True, timeout=150,
+            creationflags=subprocess.CREATE_NO_WINDOW)
         return r.returncode == 0, (r.stdout or r.stderr)[:500]
     except subprocess.TimeoutExpired:
         return False, "超时 (150s)"

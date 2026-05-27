@@ -269,10 +269,8 @@ def start_gui():
             self._lock = threading.Lock()
 
         def browse_folder(self):
-            import tkinter.filedialog as fd
-            r = tk.Tk(); r.withdraw(); r.attributes('-topmost', True)
-            p = fd.askdirectory(title="选择 Keil 工程目录"); r.destroy()
-            return p or ""
+            result = window.create_file_dialog(webview.FileDialog.FOLDER)
+            return result[0] if result else ""
         def check_env(self, project_path):
             from core.project_wizard import check_env
             return json.dumps(check_env(project_path), ensure_ascii=False)
