@@ -84,9 +84,15 @@ class Splash:
         self.btn_frame = tk.Frame(self.root, bg=btns_bg)
         self.btn_install = tk.Label(self.btn_frame, text='安装', font=('Microsoft YaHei', 10), fg='#ea580c', bg=btns_bg, cursor='hand2')
         self.btn_exit = tk.Label(self.btn_frame, text='退出', font=('Microsoft YaHei', 10), fg='#999', bg=btns_bg, cursor='hand2')
-        for b in [self.btn_install, self.btn_exit]:
-            b.bind('<Enter>', lambda e,w=b: w.config(fg='#d04a0a' if w is self.btn_install else '#666'))
-            b.bind('<Leave>', lambda e,w=b: w.config(fg='#ea580c' if w is self.btn_install else '#999'))
+        self.btn_download = tk.Label(self.btn_frame, text='下载Python', font=('Microsoft YaHei', 10), fg='#2563eb', bg=btns_bg, cursor='hand2')
+        self.btn_browse = tk.Label(self.btn_frame, text='手动定位...', font=('Microsoft YaHei', 10), fg='#16a34a', bg=btns_bg, cursor='hand2')
+        for b, hover_color in [(self.btn_install, '#d04a0a'), (self.btn_exit, '#666'),
+                                (self.btn_download, '#1d4ed8'), (self.btn_browse, '#0d7a30')]:
+            b._hover = hover_color
+            b.bind('<Enter>', lambda e,w=b: w.config(fg=w._hover))
+            b.bind('<Leave>', lambda e,w=b: w.config(fg=w._base_fg or '#999'))
+        self.btn_install._base_fg = '#ea580c'; self.btn_exit._base_fg = '#999'
+        self.btn_download._base_fg = '#2563eb'; self.btn_browse._base_fg = '#16a34a'
         self._btn_y = btn_y
 
         self.c = c
@@ -150,13 +156,16 @@ class Splash:
             G_HOST_PYTHON = p_path
             self.log(0, '#16a34a', f'[Python ] System Python {p_ver}  \u2713')
         else:
-            self.log(0, '#dc2626', '[Fatal  ] 未检测到 Python \u2265 3.10')
-            self.log(1, '#dc2626', '请先安装 Python 并勾选 Add to PATH')
-            self.set_bar(100)
-            self.show_buttons(icb=None, ecb=self._do_exit, show_install=False)
+            self.log(0, '#dc2626', '[Notice ] 未检测到 Python \u2265 3.10')
+            self.log(1, '#ea580c', '请安装 Python 3.10+ 或手动指定 python.exe 路径')
+            self.set_bar(50)
+            self._show_python_actions()
             return
 
         # 2. 宿主机依赖审计
+        self._audit_deps()
+
+    def _audit_deps(self):
         self.log(1, '#555', '[Pip    ] Scanning host packages...'); self.set_bar(40)
         dep_ok, missing = check_host_pip_deps(G_HOST_PYTHON)
         if dep_ok:
@@ -171,6 +180,48 @@ class Splash:
             self.set_bar(60)
             self.show_buttons(self._do_install, self._do_exit, show_install=True)
 
+    # ── Python 未找到时的引导 ──────────────────────────
+    def _show_python_actions(self):
+        def _do():
+            self.btn_install.pack_forget()
+            self.btn_download.bind('<Button-1>', lambda e: self._do_download_python())
+            self.btn_browse.bind('<Button-1>', lambda e: self._do_browse_python())
+            self.btn_exit.bind('<Button-1>', lambda e: self._do_exit())
+            self.btn_download.pack(side='left', padx=(0, 12))
+            self.btn_browse.pack(side='left', padx=(0, 12))
+            self.btn_exit.pack(side='left')
+            self.c.create_window(self.W//2, self._btn_y, window=self.btn_frame)
+        self.root.after(0, _do)
+
+    def _do_download_python(self):
+        import webbrowser
+        webbrowser.open('https://www.python.org/downloads/')
+        self.log(1, '#555', '安装完成后请重启 McuPilot')
+
+    def _do_browse_python(self):
+        from tkinter import filedialog
+        path = filedialog.askopenfilename(
+            title='选择 Python 可执行文件 (python.exe)',
+            filetypes=[('Python', 'python.exe'), ('All', '*.*')])
+        if not path: return
+        # 验证版本
+        cflags = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
+        try:
+            r = subprocess.run([path, '-c',
+                'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")'],
+                capture_output=True, text=True, timeout=5, creationflags=cflags)
+            if r.returncode == 0:
+                major, minor = map(int, r.stdout.strip().split('.'))
+                if major == 3 and minor >= 10 or major > 3:
+                    global G_HOST_PYTHON
+                    G_HOST_PYTHON = path
+                    self.log(0, '#16a34a', f'[Python ] User Python {major}.{minor}  \u2713')
+                    self.btn_frame.pack_forget()
+                    threading.Thread(target=self._audit_deps, daemon=True).start()
+                    return
+        except Exception: pass
+        self.log(1, '#dc2626', '所选程序不是 Python \u2265 3.10，请重新选择')
+
     def _do_install(self):
         self.disable_btns(); self.root.after(0, lambda: self.btn_install.config(text='...'))
         self.log(1, '#ea580c', '[Pip    ] Injecting to host...'); self.set_bar(65)
@@ -184,15 +235,24 @@ class Splash:
                     capture_output=True, text=True, timeout=180,
                     creationflags=subprocess.CREATE_NO_WINDOW if sys.platform=='win32' else 0)
                 if r.returncode == 0:
-                    self.log(1, '#16a34a', '[Pip    ] \u2713')
-                    for i in range(2,4): self.log(i, '#fafafc', '')
-                    self.set_bar(100); time.sleep(0.4)
-                    self.root.after(0, self._done)
+                    self.log(1, '#16a34a', '[Pip    ] Dependency install OK')
+                    self.set_bar(80)
+                    # 复验依赖是否真正可 import
+                    dep_ok2, missing2 = check_host_pip_deps(G_HOST_PYTHON)
+                    if dep_ok2:
+                        self.log(2, '#16a34a', '[Verify ] All imports confirmed \u2713')
+                        self.set_bar(100); time.sleep(0.4)
+                        self.root.after(0, self._done)
+                    else:
+                        chunk = ', '.join(missing2[:6])
+                        self.log(2, '#dc2626', f'[Verify ] Still missing: {chunk}')
+                        self.root.after(0, lambda: self.btn_install.config(text='重试'))
+                        self.enable_btns()
                 else:
                     self.log(1, '#dc2626', '[Pip    ] \u2717 写入失败')
                     self.root.after(0, lambda: self.btn_install.config(text='重试'))
                     self.enable_btns()
-            except:
+            except Exception:
                 self.log(1, '#dc2626', '[Pip    ] \u2717 网络错误')
                 self.root.after(0, lambda: self.btn_install.config(text='重试'))
                 self.enable_btns()
@@ -207,19 +267,21 @@ class Splash:
 
 # ── 宿主机逆向探测 ───────────────────────────────────
 def check_host_python():
+    import shlex
     cflags = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
-    for cmd in ['python', 'python3']:
+    for cmd_str in ['python', 'python3', 'py -3']:
         try:
-            r = subprocess.run([cmd, '-c', 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")'],
+            cmd_parts = shlex.split(cmd_str)
+            r = subprocess.run([*cmd_parts, '-c', 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")'],
                 capture_output=True, text=True, timeout=3, creationflags=cflags)
             if r.returncode == 0:
                 major, minor = map(int, r.stdout.strip().split('.'))
                 if major == 3 and minor >= 10 or major > 3:
-                    pr = subprocess.run([cmd, '-c', 'import sys; print(sys.executable)'],
+                    pr = subprocess.run([*cmd_parts, '-c', 'import sys; print(sys.executable)'],
                         capture_output=True, text=True, timeout=2, creationflags=cflags)
                     if pr.returncode == 0:
                         return True, f'{major}.{minor}', pr.stdout.strip()
-        except: continue
+        except Exception: continue
     return False, '0.0', ''
 
 def check_host_pip_deps(host_py):
@@ -232,7 +294,7 @@ def check_host_pip_deps(host_py):
         with open(REQ_PATH, encoding='utf-8') as f:
             reqs = [l.split('#')[0].strip().split('>=')[0].split('==')[0].strip().split('[')[0]
                     for l in f if l.strip() and not l.startswith('#')]
-    except:
+    except Exception:
         return True, []
     if not reqs: return True, []
 
@@ -251,11 +313,11 @@ def check_host_pip_deps(host_py):
     ])
     cflags = subprocess.CREATE_NO_WINDOW if sys.platform=='win32' else 0
     try:
-        r = subprocess.run([host_py, '-c', script], capture_output=True, text=True, timeout=5, creationflags=cflags)
+        r = subprocess.run([host_py, '-c', script], capture_output=True, text=True, timeout=15, creationflags=cflags)
         if r.returncode == 0:
             missing = json.loads(r.stdout.strip())
             return len(missing)==0, missing
-    except: pass
+    except Exception: pass
     return False, reqs
 
 # ── GUI 启动 ─────────────────────────────────────────
@@ -317,4 +379,4 @@ if __name__ == '__main__':
     s.root.mainloop()
     start_gui()
     try: s.destroy()
-    except: pass
+    except Exception: pass
