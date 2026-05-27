@@ -1,6 +1,16 @@
 # McuPilot
 
-<p align="center"><img src="mcupilot_icon.svg" width="160" alt="McuPilot Icon"/></p>
+<p align="center">
+  <img src="mcupilot_icon.svg" width="120" alt="McuPilot Icon"/>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.10+-blue" alt="Python"/>
+  <img src="https://img.shields.io/badge/platform-Windows-lightgrey" alt="Platform"/>
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License"/>
+  <img src="https://img.shields.io/badge/MCU-华大HC32-orange" alt="MCU"/>
+  <img src="https://img.shields.io/badge/protocol-MCP-blueviolet" alt="MCP"/>
+</p>
 
 > AI 驱动的单片机自动化网关 — 通过自然语言控制、调试和测试嵌入式系统。
 
