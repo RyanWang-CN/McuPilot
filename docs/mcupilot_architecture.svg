@@ -1,0 +1,246 @@
+<?xml version="1.0" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 800" width="1160" height="800" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+          <!-- 根背景 -->
+          <rect width="1160" height="800" fill="#f8fafc"/>
+
+          <!-- 头部标题区域 -->
+          <g transform="translate(10, 24)">
+            <line x1="20" y1="20" x2="20" y2="70" stroke="#6366f1" stroke-width="4"/>
+            <text x="32" y="44" font-size="28" font-weight="900" fill="#1e293b">McuPilot 工具链架构</text>
+            <svg x="32" y="56" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            <text x="54" y="69" font-size="14" font-weight="500" fill="#64748b">系统模块交互与物理部署拓扑图</text>
+          </g>
+
+          <!-- 画布主体 (基于 Y=100 进行偏移，匹配原版居中与尺寸) -->
+          <g transform="translate(0, 100)">
+            
+            <!-- 网格背景 (对应 bg-grid-pattern) -->
+            <defs>
+              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="1" fill="#e2e8f0"/>
+              </pattern>
+              <!-- 箭头定义 -->
+              <marker id="arrow-end" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <polygon points="0 1, 10 5, 0 9" fill="#94a3b8"/>
+              </marker>
+              <marker id="arrow-start" markerWidth="10" markerHeight="10" refX="2" refY="5" orient="auto">
+                <polygon points="10 1, 0 5, 10 9" fill="#94a3b8"/>
+              </marker>
+            </defs>
+            
+            <rect x="0" y="0" width="1160" height="700" fill="#ffffff"/>
+            <rect x="0" y="0" width="1160" height="700" fill="url(#grid)"/>
+            
+            <!-- 顶部/底部边界边框 (模拟原圆角容器) -->
+            <rect x="0" y="0" width="1160" height="700" fill="none" stroke="#cbd5e1" stroke-width="1" rx="16" opacity="0.6"/>
+
+            <!-- 左/右区域水印文字 -->
+            <text x="180" y="40" font-size="24" font-weight="900" fill="#cbd5e1" opacity="0.8" text-anchor="middle" letter-spacing="4">使用者环境</text>
+            <text x="980" y="40" font-size="24" font-weight="900" fill="#cbd5e1" opacity="0.8" text-anchor="middle" letter-spacing="4">目标硬件端</text>
+
+            <!-- 中间：McuPilot 工具链边界 (虚线框体) -->
+            <rect x="380" y="40" width="400" height="590" rx="24" fill="#eef2ff" fill-opacity="0.3" stroke="#c7d2fe" stroke-width="2" stroke-dasharray="8 4"/>
+            <!-- 边界标题 -->
+            <rect x="500" y="26" width="160" height="28" rx="14" fill="#ffffff" stroke="#c7d2fe" stroke-width="1"/>
+            <svg x="515" y="32" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+            <text x="585" y="45" font-size="14" font-weight="bold" fill="#4338ca" text-anchor="middle">McuPilot 工具链</text>
+
+
+            <!-- ================= 连线与动画 ================= -->
+            <!-- 1. AI <-> MCP (水平中轴 Y=350) -->
+            <path d="M 320 350 L 420 350" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <!-- 动画光点 -->
+            <circle r="4" fill="#6366f1">
+              <animateMotion dur="2s" repeatCount="indefinite" path="M 320 350 L 420 350"/>
+            </circle>
+            <circle r="4" fill="#3b82f6">
+              <animateMotion dur="2.5s" repeatCount="indefinite" path="M 420 350 L 320 350"/>
+            </circle>
+            <!-- Label -->
+            <rect x="335" y="322" width="70" height="24" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+            <text x="370" y="338" font-size="11" font-weight="bold" fill="#475569" text-anchor="middle">MCP 协议</text>
+
+            <!-- 2. Setup -> MCP (垂直中轴 X=580) -->
+            <path d="M 580 230 L 580 280" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-end)"/>
+            <!-- 动画光点 -->
+            <circle r="4" fill="#6366f1">
+              <animateMotion dur="2s" repeatCount="indefinite" path="M 580 230 L 580 280"/>
+            </circle>
+            <!-- Label -->
+            <rect x="545" y="243" width="70" height="24" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+            <text x="580" y="259" font-size="11" font-weight="bold" fill="#475569" text-anchor="middle">环境就绪</text>
+
+            <!-- 3. MCP -> MCU (水平中轴 Y=350) -->
+            <path d="M 740 350 L 840 350" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-end)"/>
+            <!-- 动画光点 -->
+            <circle r="4" fill="#6366f1">
+              <animateMotion dur="2s" repeatCount="indefinite" path="M 740 350 L 840 350"/>
+            </circle>
+            <!-- Label -->
+            <rect x="750" y="322" width="80" height="24" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+            <text x="790" y="338" font-size="11" font-weight="bold" fill="#475569" text-anchor="middle">J-Link SWD</text>
+
+            <!-- 4. Firmware -> MCU (水平中轴 Y=540) -->
+            <path d="M 740 540 L 840 540" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-end)"/>
+            <!-- 动画光点 -->
+            <circle r="4" fill="#6366f1">
+              <animateMotion dur="2s" repeatCount="indefinite" path="M 740 540 L 840 540"/>
+            </circle>
+            <!-- Label -->
+            <rect x="760" y="512" width="60" height="24" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+            <text x="790" y="528" font-size="11" font-weight="bold" fill="#475569" text-anchor="middle">运行于</text>
+
+
+            <!-- ================= 节点卡片层 ================= -->
+
+            <!-- [左侧] AI 客户端 -->
+            <g transform="translate(40, 260)">
+              <!-- 阴影与基础框 -->
+              <rect x="0" y="4" width="280" height="180" rx="12" fill="#dbeafe" opacity="0.6"/>
+              <rect x="0" y="0" width="280" height="180" rx="12" fill="#ffffff" stroke="#bfdbfe" stroke-width="2"/>
+              <!-- 头部背景 -->
+              <path d="M 0 12 A 12 12 0 0 1 12 0 L 268 0 A 12 12 0 0 1 280 12 L 280 44 L 0 44 Z" fill="#eff6ff"/>
+              <line x1="0" y1="44" x2="280" y2="44" stroke="#f1f5f9" stroke-width="1"/>
+              
+              <!-- 头部 Icon与文字 -->
+              <rect x="16" y="10" width="24" height="24" rx="6" fill="#ffffff" stroke="#ffffff" stroke-width="1"/>
+              <svg x="20" y="14" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>
+              </svg>
+              <text x="50" y="27" font-size="15" font-weight="bold" fill="#1d4ed8">AI 客户端</text>
+              
+              <!-- 列表项 -->
+              <svg x="20" y="64" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>
+              </svg>
+              <text x="44" y="77" font-size="13" fill="#475569">Claude Code (IDE 插件)</text>
+              
+              <svg x="20" y="96" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+              </svg>
+              <text x="44" y="109" font-size="13" fill="#475569">Roo Code (智能代理)</text>
+              
+              <svg x="20" y="128" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>
+              </svg>
+              <text x="44" y="141" font-size="13" fill="#475569">Codex CLI (命令行)</text>
+            </g>
+
+
+            <!-- [中上] Setup Wizard -->
+            <g transform="translate(420, 90)">
+              <rect x="0" y="4" width="320" height="140" rx="12" fill="#d1fae5" opacity="0.6"/>
+              <rect x="0" y="0" width="320" height="140" rx="12" fill="#ffffff" stroke="#a7f3d0" stroke-width="2"/>
+              <path d="M 0 12 A 12 12 0 0 1 12 0 L 308 0 A 12 12 0 0 1 320 12 L 320 44 L 0 44 Z" fill="#ecfdf5"/>
+              <line x1="0" y1="44" x2="320" y2="44" stroke="#f1f5f9" stroke-width="1"/>
+              
+              <rect x="16" y="10" width="24" height="24" rx="6" fill="#ffffff" stroke="#ffffff" stroke-width="1"/>
+              <svg x="20" y="14" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>
+              </svg>
+              <text x="50" y="27" font-size="15" font-weight="bold" fill="#047857">Setup Wizard</text>
+
+              <svg x="20" y="60" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+              </svg>
+              <text x="44" y="73" font-size="13" fill="#475569">一次性工程向导初始化</text>
+
+              <svg x="20" y="92" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+              </svg>
+              <text x="44" y="105" font-size="13" fill="#475569">PyWebView 跨平台 GUI</text>
+            </g>
+
+
+            <!-- [中中] MCP Server (核心桥梁) -->
+            <g transform="translate(420, 280)">
+              <rect x="0" y="4" width="320" height="140" rx="12" fill="#c7d2fe" opacity="0.6"/>
+              <rect x="0" y="0" width="320" height="140" rx="12" fill="#ffffff" stroke="#818cf8" stroke-width="2"/>
+              <path d="M 0 12 A 12 12 0 0 1 12 0 L 308 0 A 12 12 0 0 1 320 12 L 320 44 L 0 44 Z" fill="#eef2ff"/>
+              <line x1="0" y1="44" x2="320" y2="44" stroke="#f1f5f9" stroke-width="1"/>
+              
+              <rect x="16" y="10" width="24" height="24" rx="6" fill="#ffffff" stroke="#ffffff" stroke-width="1"/>
+              <svg x="20" y="14" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/>
+              </svg>
+              <text x="50" y="27" font-size="15" font-weight="bold" fill="#3730a3">MCP Server (核心桥梁)</text>
+              
+              <!-- 核心心跳指示灯 (原生SVG动画) -->
+              <circle cx="296" cy="22" r="4" fill="#818cf8" opacity="0.7">
+                <animate attributeName="r" values="4; 10; 4" dur="2s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0.7; 0; 0.7" dur="2s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="296" cy="22" r="4" fill="#6366f1"/>
+
+              <svg x="20" y="60" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              <text x="44" y="73" font-size="13" fill="#475569">基于 FastMCP 框架构建</text>
+
+              <svg x="20" y="92" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>
+              </svg>
+              <text x="44" y="105" font-size="13" fill="#475569">大模型 ↔ MCU 指令翻译</text>
+            </g>
+
+
+            <!-- [中下] 固件底座 (Firmware Base) -->
+            <g transform="translate(420, 470)">
+              <rect x="0" y="4" width="320" height="140" rx="12" fill="#fef3c7" opacity="0.6"/>
+              <rect x="0" y="0" width="320" height="140" rx="12" fill="#ffffff" stroke="#fde68a" stroke-width="2"/>
+              <path d="M 0 12 A 12 12 0 0 1 12 0 L 308 0 A 12 12 0 0 1 320 12 L 320 44 L 0 44 Z" fill="#fffbeb"/>
+              <line x1="0" y1="44" x2="320" y2="44" stroke="#f1f5f9" stroke-width="1"/>
+              
+              <rect x="16" y="10" width="24" height="24" rx="6" fill="#ffffff" stroke="#ffffff" stroke-width="1"/>
+              <svg x="20" y="14" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m10 13-2 2 2 2"/><path d="m14 17 2-2-2-2"/>
+              </svg>
+              <text x="50" y="27" font-size="15" font-weight="bold" fill="#b45309">固件底座 (Firmware Base)</text>
+
+              <svg x="20" y="60" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M9 1v3"/><path d="M15 1v3"/><path d="M9 20v3"/><path d="M15 20v3"/><path d="M20 9h3"/><path d="M20 14h3"/><path d="M1 9h3"/><path d="M1 14h3"/>
+              </svg>
+              <text x="44" y="73" font-size="13" fill="#475569">HIL (硬件在环) 热注入支持</text>
+
+              <svg x="20" y="92" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <text x="44" y="105" font-size="13" fill="#475569">Segger RTT 高速日志协议</text>
+            </g>
+
+
+            <!-- [右侧] MCU 硬件设备 -->
+            <g transform="translate(840, 260)">
+              <rect x="0" y="4" width="280" height="350" rx="12" fill="#e2e8f0" opacity="0.6"/>
+              <rect x="0" y="0" width="280" height="350" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+              <path d="M 0 12 A 12 12 0 0 1 12 0 L 268 0 A 12 12 0 0 1 280 12 L 280 44 L 0 44 Z" fill="#f8fafc"/>
+              <line x1="0" y1="44" x2="280" y2="44" stroke="#f1f5f9" stroke-width="1"/>
+              
+              <rect x="16" y="10" width="24" height="24" rx="6" fill="#ffffff" stroke="#ffffff" stroke-width="1"/>
+              <svg x="20" y="14" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" x2="2" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/>
+              </svg>
+              <text x="50" y="27" font-size="15" font-weight="bold" fill="#1e293b">MCU 硬件设备</text>
+
+              <!-- 垂直居中的列表项 -->
+              <svg x="20" y="152" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M9 1v3"/><path d="M15 1v3"/><path d="M9 20v3"/><path d="M15 20v3"/><path d="M20 9h3"/><path d="M20 14h3"/><path d="M1 9h3"/><path d="M1 14h3"/>
+              </svg>
+              <text x="44" y="165" font-size="13" fill="#475569">华大 HC32 系列微控制器</text>
+
+              <svg x="20" y="187" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 12 12 17 22 12"/><polyline points="2 17 12 22 22 17"/>
+              </svg>
+              <text x="44" y="200" font-size="13" fill="#475569">Cortex-M0+ / M4 内核</text>
+
+              <svg x="20" y="222" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <circle cx="10" cy="7" r="1"/><circle cx="4" cy="20" r="1"/><path d="M4.7 19.3 19 5"/><path d="m21 3-3 1 2 2Z"/><path d="M9.26 7.68 5 12l2 5"/><path d="m10 14 5 2 3.5-3.5"/><path d="m18 12 1-1 1 1-1 1Z"/>
+              </svg>
+              <text x="44" y="235" font-size="13" fill="#475569">J-Link 物理仿真接口</text>
+            </g>
+          </g>
+        </svg>
