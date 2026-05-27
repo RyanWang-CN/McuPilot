@@ -16,9 +16,20 @@
   <img src="https://img.shields.io/badge/IDE-Keil_MDK-0090d4" alt="Keil"/>
 </p>
 
-> AI 驱动的单片机自动化网关 — 通过自然语言控制、调试和测试嵌入式系统。
-
-McuPilot 通过 [MCP 协议](https://modelcontextprotocol.io/) 将 AI 助手（Claude Code、Roo Code 等）与单片机硬件连接起来。它把 AI 变成嵌入式开发的"大脑"，能够完成编译固件、烧录、传感器数据读取、HIL 测试参数注入、硬件调试等操作 — 全通过自然语言指令完成。
+> **McuPilot — 面向 Cortex-M 的运行时 AI 协同工具链**
+>
+> 通过 [MCP 协议](https://modelcontextprotocol.io/) 为 AI 提供 **编译、烧录、热修参数、
+> 高速数据采集、硬件在环** 等全套单片机操作能力。
+> 专为高速控制场景设计（如 **30μs** 响应链路），依托 **J-Link SWD** 总线，无需 UART、无需停机。
+>
+> **白名单限定工作域，省 token** — 编译期用 `HIL_WHITELIST` 标记可交互变量，
+> AI 只在这组变量范围内读写，不扫全量 `.map`，避免 token 浪费。
+>
+> **热重载，不重烧** — AI 通过 AHB-AP 总线单周期读写 SRAM，
+> **50MHz 下约 20ns** 完成一次参数覆写，无需复位即可生效。
+>
+> **RTT 代替 UART 传数据** — 环形缓冲内存拷贝即可上传，
+> 不占用通信外设，**30μs** 中断链路中保障实时时序不受影响。
 
 ---
 
