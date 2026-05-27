@@ -1,4 +1,4 @@
-"""McuPilot Setup — Splash + 环境检测 + PyWebView GUI (环境守门员版)"""
+"""McuPilot Setup — Splash + 环境检测 + PyWebView GUI"""
 import os, sys, json, threading, subprocess, time, math, tkinter as tk
 from PIL import Image, ImageDraw, ImageTk
 

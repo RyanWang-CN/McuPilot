@@ -34,7 +34,7 @@ McuPilot 通过 [MCP 协议](https://modelcontextprotocol.io/) 将 AI 助手（C
 ## 亮点
 
 - **双入口启动** — Release 包双击即用，或 `python run_setup.py` 源码运行
-- **环境守门员** — 自动检测系统 Python，一键安装缺失依赖
+- **环境自检** — 启动时自动检测系统 Python 和依赖库，缺什么装什么
 - **一键部署** — 自动注入 HIL/RTT 到 Keil 工程、编译、解析、注册 MCP
 - **AI 协同调试** — 通过自然语言操控单片机，支持热注入不停机修改参数
 - **聚焦国产 MCU** — 华大 HC32 系列（M0~M4），不围着 STM32 / ESP32 转
