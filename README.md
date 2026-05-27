@@ -18,15 +18,14 @@ McuPilot 通过 [MCP 协议](https://modelcontextprotocol.io/) 将 AI 助手（C
 
 ## 架构
 
-```
-+-------------------+     +-------------------+     +------------------+
-|   配置向导         | --> |  MCP 技能网关       | --> |   MCU 硬件       |
-| (PyWebView GUI)   |     | (FastMCP 服务端)    |     | (华大 HC32 系列) |
-| 一次性项目初始化     |     +-------------------+     +------------------+
-| - 环境自动审计                |
-| - 一键文件注入/编译/解析       |     AI 客户端 (Claude Code / Roo Code)
-| - MCP 自动注册               |     通过 MCP 协议日常操控单片机
-+-------------------+          |
+```mermaid
+flowchart LR
+    A[<b>Setup Wizard</b><br/>PyWebView GUI<br/>一次性初始化] -->|环境就绪| B[<b>MCP Server</b><br/>FastMCP 网关<br/>AI↔MCU 协议桥梁]
+    B <-->|自然语言| C[<b>AI 客户端</b><br/>Claude Code / Roo Code<br/>Codex CLI]
+    B -->|J-Link SWD| D[<b>MCU 硬件</b><br/>华大 HC32 系列<br/>M0/M4 内核]
+    A -.->|环境审计| E[<b>宿主机 Python</b><br/>依赖自动补全]
+    B -->|读写| F[<b>固件底座</b><br/>HIL 热注入 + RTT 日志]
+    F --> D
 ```
 
 三类技能以 MCP Tool 的形式暴露给 AI：
