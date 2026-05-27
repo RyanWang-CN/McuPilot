@@ -5,15 +5,15 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/python-3.10+-blue" alt="Python"/>
-  <img src="https://img.shields.io/badge/platform-Windows-lightgrey" alt="Platform"/>
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="License"/>
-  <img src="https://img.shields.io/badge/protocol-MCP-blueviolet" alt="MCP"/>
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB" alt="Python"/>
+  <img src="https://img.shields.io/badge/Windows-10+-0078D6" alt="Windows"/>
+  <img src="https://img.shields.io/badge/License-MIT-2ea44f" alt="MIT"/>
+  <img src="https://img.shields.io/badge/Protocol-MCP-6e40c9" alt="MCP"/>
   <br/>
-  <img src="https://img.shields.io/badge/MCU-华大HC32-orange" alt="MCU"/>
-  <img src="https://img.shields.io/badge/core-M0~M4-ff6b35" alt="Core"/>
-  <img src="https://img.shields.io/badge/J--Link-SEGGER-00a87e" alt="J-Link"/>
-  <img src="https://img.shields.io/badge/Keil-MDK5-1b998b" alt="Keil"/>
+  <img src="https://img.shields.io/badge/MCU-HC32-ea580c" alt="MCU"/>
+  <img src="https://img.shields.io/badge/Core-M0~M4-ff6b35" alt="Core"/>
+  <img src="https://img.shields.io/badge/Debug-JLink-003d5c" alt="J-Link"/>
+  <img src="https://img.shields.io/badge/IDE-Keil_MDK-0090d4" alt="Keil"/>
 </p>
 
 > AI 驱动的单片机自动化网关 — 通过自然语言控制、调试和测试嵌入式系统。
