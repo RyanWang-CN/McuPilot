@@ -10,9 +10,13 @@ McuPilot 通过 [MCP 协议](https://modelcontextprotocol.io/) 将 AI 助手（C
 
 ```
 +-------------------+     +-------------------+     +------------------+
-|   AI 大脑层       | --> |  MCP 技能网关     | --> |   MCU 硬件       |
-| (Claude/Roo Code) |     | (FastMCP 服务端)  |     | (华大 HC32 系列) |
-+-------------------+     +-------------------+     +------------------+
+|   配置向导         | --> |  MCP 技能网关       | --> |   MCU 硬件       |
+| (PyWebView GUI)   |     | (FastMCP 服务端)    |     | (华大 HC32 系列) |
+| 一次性项目初始化     |     +-------------------+     +------------------+
+| - 环境自动审计                |
+| - 一键文件注入/编译/解析       |     AI 客户端 (Claude Code / Roo Code)
+| - MCP 自动注册               |     通过 MCP 协议日常操控单片机
++-------------------+          |
 ```
 
 三类技能以 MCP Tool 的形式暴露给 AI：
@@ -36,20 +40,26 @@ McuPilot 通过 [MCP 协议](https://modelcontextprotocol.io/) 将 AI 助手（C
 - [Keil MDK](https://www.keil.com/download/product/) v5（用于编译和烧录）
 - 支持 MCP Tool 的 AI 助手（Claude Code、Roo Code 等）
 
-## 安装
+## 快速开始
+
+**方式一：下载 Release 包（推荐）**
+
+从 [Releases](https://github.com/RyanWang-CN/mcupilot/releases) 下载 `McuPilot.zip`，解压双击 `McuPilot.exe`，自动检测环境并进入配置向导。
+
+**方式二：源码运行**
 
 ```bash
-# 克隆仓库
 git clone https://github.com/RyanWang-CN/mcupilot.git
 cd mcupilot
+setup.bat          # Windows 一键安装依赖
+python run_setup.py  # 启动配置向导
+```
 
-# 创建并激活虚拟环境
+## 安装（仅方式二需要）
+
+```bash
 python -m venv venv
-# Windows:
 .\venv\Scripts\activate
-# 或在 PowerShell: .\venv\Scripts\Activate.ps1
-
-# 安装依赖
 pip install -r requirements.txt
 ```
 

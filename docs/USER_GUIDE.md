@@ -1,79 +1,49 @@
 # McuPilot 使用指南
 
-> 从零跑通：编译烧录 → 读变量 → HIL 热注入
+> 双击 exe → 选工程 → 一键部署 → AI 操控单片机
 
-## 第一步：搞硬件
+## 第一步：硬件环境
 
-- 华大 HC32 开发板 + SEGGER J-Link 接好，上电
+- 华大 HC32 开发板 + SEGGER J-Link 连接上电
 - 电脑装好 J-Link 驱动（v7.x+）和 Keil MDK v5
 
-## 第二步：拉代码装环境
+## 第二步：启动配置向导
 
-```bash
-git clone https://github.com/RyanWang-CN/mcupilot.git
-cd mcupilot
-setup.bat          # Windows 一键搞定
-```
+双击 `run_setup.py`（或打包后的 `McuPilot_Setup.exe`），进入 splash 启动画面。
 
-## 第三步：固件集成 HIL + RTT
+自动完成：
+- 检测 Python 3.10+ 环境
+- 检测并安装缺失的 pip 依赖
 
-把仓库里的 `HIL/` 和 `RTT/` 复制到你的 Keil 工程，添加到编译列表。参照 `HIL/example_main.c` 初始化即可。
+## 第三步：工程设置
 
-要点：
-- 改 `hil_config_user.h`，把你的业务参数塞进 `HIL_Global_Params_t`
-- `main()` 里 `HIL_Inject_Init()` → 主循环 `HIL_Inject_Task()`
-- 编译烧录一次，让固件跑起来
+1. 浏览或输入 Keil 工程目录（含 .uvprojx）
+2. 自动检测：芯片型号 / Keil 路径 / J-Link 连接状态
+3. 填写可热修参数表（变量名、类型、默认值）
+4. 勾选要注册的 AI 客户端（Claude Code / Roo Code / Codex CLI）
 
-## 第四步：启动 MCP Server
+## 第四步：一键部署
 
-```bash
-python mcp_server.py
-```
+点"开始部署"，六步自动执行：
 
-## 第五步：接入 AI 客户端
+| 步骤 | 内容 |
+|------|------|
+| ① 生成 hil_config_user.h | 根据参数表生成用户结构体 |
+| ② 复制 HIL/RTT 到工程 | 将固件底座拷贝到目标目录 |
+| ③ 注册文件到 Keil 工程 | XML 注入文件组 + include 路径 |
+| ④ 编译工程 | UV4.exe 命令行编译 |
+| ⑤ 解析内存字典 | 生成 .hil_symbols.json |
+| ⑥ 注册 MCP | 写入 AI 客户端配置文件 |
 
-以 Claude Code 为例，在 `.claude/claude.json` 里加：
+## 第五步：开始使用
 
-```json
-{
-  "mcpServers": {
-    "mcupilot": {
-      "command": "python",
-      "args": ["C:/Users/Administrator/Desktop/McuPilot/mcp_server.py"]
-    }
-  }
-}
-```
-
-Roo Code 用户在 VS Code 插件设置里添加 MCP Server，指向同样的脚本。
-
-## 第六步：工程初始化（每次新对话必做）
-
-AI 连接上 MCP Server 后，必须先对它说：
-
-> "先帮我初始化工程配置，然后扫描 HIL 字典"
-
-AI 会依次调用：
-- `init_project_config` — 嗅探 Keil 工程，生成 `project_config.yaml`（锁定芯片型号、工程路径）
-- `update_hil_dictionary` — 扫 `.map/.axf`，生成 `.hil_symbols.json`（告诉 AI 哪些变量可热修、地址在哪）
-
-这一步跑完后，AI 才知道要操作的是哪颗芯片、能改哪些变量。换个新工程或新对话，需要重新跑一次。
-
-## 第七步：开搞
-
-AI 确认芯片型号和可用变量后，直接说人话：
-
-- "帮我编译烧录" → `build_project` + `flash_project`
-- "看看现在 CPU 跑着没" → `check_mcu_status`
-- "读一下雷达阈值" → `read_hil_variable`
-- "把阈值改成 80" → `inject_hil_parameters`（热注入，不停机）
-- "抓一段 RTT 日志" → `rtt_print`
+部署完成后，在 main.c 中加入 HIL 初始化代码（弹窗提供模板），再次编译烧录，然后打开 AI 客户端即可通过 MCP 操控单片机。
 
 ## 常见问题
 
 | 现象 | 检查 |
 |------|------|
-| J-Link 连不上 | J-Link 驱动装了吗？`scan_connected_probes` 看看 |
-| 编译报错 | Keil 命令行工具装了没？工程路径对不对 |
-| HIL 注入没反应 | `hil_parser` 跑过没？固件里 `HIL_Inject_Task` 在主循环里吗 |
-| RTT 抓不到 | 固件初始化了 `SEGGER_RTT_ConfigUpBuffer` 吗 |
+| J-Link 未检测到 | 驱动装了吗？J-Link USB 插好了吗？ |
+| 芯片型号未识别 | 路径下有 .uvprojx 吗？ |
+| 编译失败 | 工程配置正确吗？Keil 命令行工具装了吗？ |
+| HIL 热注入无效 | 固件里调了 HIL_Inject_Task() 吗？ |

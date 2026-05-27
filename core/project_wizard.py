@@ -139,40 +139,78 @@ def copy_hil_rtt(tools_root, project_path):
             shutil.rmtree(dst)
         shutil.copytree(src, dst)
 
-def inject_keil_com(project_path):
-    """通过 COM 将 HIL/RTT 文件注入 Keil 工程。返回 (ok, msg)"""
+def inject_keil_xml(project_path):
+    """通过 XML 将 HIL/RTT 文件注入 Keil 工程。返回 (ok, msg)"""
+    import shutil, xml.etree.ElementTree as ET
     try:
-        import win32com.client
-        proj_file = glob.glob(os.path.join(project_path, "*.uvprojx"))[0]
-        proj_name = os.path.basename(proj_file)
-        # 尝试多种 COM ProgID
-        uv = None
-        for progid in ["uVision5.Application", "uVision4.Application", "Uv5.Application"]:
-            try:
-                uv = win32com.client.Dispatch(progid)
+        proj_files = glob.glob(os.path.join(project_path, "*.uvprojx"))
+        if not proj_files:
+            return False, "未找到 .uvprojx 工程文件"
+        proj_file = proj_files[0]
+
+        # 备份
+        bak = proj_file + ".mcupilot.bak"
+        if not os.path.exists(bak):
+            shutil.copy2(proj_file, bak)
+
+        tree = ET.parse(proj_file)
+        root = tree.getroot()
+
+        # 找到 <Targets>/<Target>/<Groups>
+        groups = root.find("Targets/Target/Groups")
+        if groups is None:
+            # 兼容 Keil v4/v5 不同结构
+            groups = root.find(".//Groups")
+        if groups is None:
+            return False, "XML 结构异常：找不到 Groups 节点"
+
+        # 检查已存在的组名，防重复
+        existing = {g.findtext("GroupName", "") for g in groups.findall("Group")}
+        proj_dir = project_path
+
+        # HIL 组
+        if "HIL" not in existing:
+            g_hil = ET.SubElement(groups, "Group")
+            ET.SubElement(g_hil, "GroupName").text = "HIL"
+            f_hil = ET.SubElement(g_hil, "Files")
+            for fc in glob.glob(os.path.join(proj_dir, "HIL", "*.c")):
+                if os.path.basename(fc) == "example_main.c":
+                    continue  # 参考模板，不参与编译
+                fe = ET.SubElement(f_hil, "File")
+                ET.SubElement(fe, "FileName").text = os.path.basename(fc)
+                ET.SubElement(fe, "FileType").text = "1"
+                ET.SubElement(fe, "FilePath").text = "./HIL/" + os.path.basename(fc)
+
+        # RTT 组
+        if "RTT" not in existing:
+            g_rtt = ET.SubElement(groups, "Group")
+            ET.SubElement(g_rtt, "GroupName").text = "RTT"
+            f_rtt = ET.SubElement(g_rtt, "Files")
+            for fc in glob.glob(os.path.join(proj_dir, "RTT", "*.c")):
+                fe = ET.SubElement(f_rtt, "File")
+                ET.SubElement(fe, "FileName").text = os.path.basename(fc)
+                ET.SubElement(fe, "FileType").text = "1"
+                ET.SubElement(fe, "FilePath").text = "./RTT/" + os.path.basename(fc)
+
+        # 追加 include 路径（只改 C 编译器第一个非空 IncludePath，防重复）
+        for inc in root.iter("IncludePath"):
+            if inc.text and inc.text.strip():
+                txt = inc.text.strip().rstrip(";")
+                parts = [p.strip() for p in txt.split(";")]
+                for d in ["./HIL", "./RTT"]:
+                    if d not in parts:
+                        txt += ";" + d
+                        parts.append(d)
+                inc.text = txt
                 break
-            except: continue
-        if not uv:
-            return False, "Keil COM 不可用，请手动将 HIL/RTT 文件拖入 Keil 工程树"
 
-        uv.Visible = False
-        uv.OpenProject(proj_file)
-        proj = uv.ActiveProject
-
-        hil_files = glob.glob(os.path.join(project_path, "HIL", "*.c"))
-        rtt_files = glob.glob(os.path.join(project_path, "RTT", "*.c"))
-        for f in hil_files:
-            try: proj.AddFile(f, "HIL")
-            except: pass
-        for f in rtt_files:
-            try: proj.AddFile(f, "RTT")
-            except: pass
-
-        proj.Save()
-        uv.Quit()
-        return True, "OK"
+        tree.write(proj_file, encoding="utf-8", xml_declaration=True)
+        added = []
+        if "HIL" not in existing: added.append("HIL")
+        if "RTT" not in existing: added.append("RTT")
+        return (True, f"已注入 {'+'.join(added)} 到 Keil 工程") if added else (True, "HIL/RTT 已存在，跳过")
     except Exception as e:
-        return False, f"COM 注入失败: {str(e)[:60]}"
+        return False, f"XML 注入失败: {str(e)[:60]}"
 
 def _type_size(t):
     m = {"uint8_t":1,"int8_t":1,"uint16_t":2,"int16_t":2,"uint32_t":4,"int32_t":4,"float":4}
@@ -180,12 +218,14 @@ def _type_size(t):
 
 # ---- 编译 & 解析 ----
 
-def _run_py_module(module, cwd, tools_root, args=None):
+def _run_py_module(module, cwd, tools_root, args=None, python_path=None):
     """启动 Python 子进程运行模块"""
-    cmd = [sys.executable or "python", "-u", "-m", module]
+    py = python_path or sys.executable or 'python'
+    cmd = [py, "-u", "-m", module]
     if args: cmd.extend(args)
     env = os.environ.copy()
     env["PYTHONPATH"] = tools_root
+    env["PYTHONIOENCODING"] = "utf-8"
     try:
         r = subprocess.run(cmd, cwd=cwd, env=env, capture_output=True,
             text=True, timeout=150, creationflags=subprocess.CREATE_NO_WINDOW)
@@ -195,26 +235,29 @@ def _run_py_module(module, cwd, tools_root, args=None):
     except Exception as e:
         return False, str(e)[:100]
 
-def compile_project(project_path, tools_root):
+def compile_project(project_path, tools_root, python_path=None):
     """先跑 auto_config_builder 生成 yaml，再编译。返回 (ok, msg)"""
-    ok1, msg1 = _run_py_module("core.auto_config_builder", project_path, tools_root)
+    ok1, msg1 = _run_py_module("core.auto_config_builder", project_path, tools_root, python_path=python_path)
     if not ok1:
         return False, f"配置生成失败: {msg1[:100]}"
-    ok2, msg2 = _run_py_module("skills.build.compile_auto", project_path, tools_root)
+    ok2, msg2 = _run_py_module("skills.build.compile_auto", project_path, tools_root, python_path=python_path)
     if not ok2:
         return False, f"编译失败: {msg2[:200]}"
-    # 从输出中提取错误/警告数
+    # 从 stdout 中提取 JSON（stderr 可能混入了编码乱码）
     import re
+    match = re.search(r'\{.*"status".*\}', msg2, re.DOTALL)
     try:
-        data = json.loads(msg2) if msg2.strip().startswith("{") else {}
+        data = json.loads(match.group()) if match else {}
     except: data = {}
     errors = data.get("errors", 0)
     warnings = data.get("warnings", 0)
+    if errors > 0:
+        return False, f"编译有 {errors} 个错误 ({warnings} warnings)"
     return True, f"编译通过 ({errors} errors, {warnings} warnings)"
 
-def parse_symbols(project_path, tools_root):
+def parse_symbols(project_path, tools_root, python_path=None):
     """运行 hil_parser 生成 .hil_symbols.json。返回 (ok, msg)"""
-    ok, msg = _run_py_module("core.hil_parser", project_path, tools_root)
+    ok, msg = _run_py_module("core.hil_parser", project_path, tools_root, python_path=python_path)
     if not ok: return False, f"解析失败: {msg[:100]}"
     # 统计符号数
     sym_file = os.path.join(project_path, ".hil_symbols.json")
@@ -289,17 +332,17 @@ def _write_codex_toml(path, mcp_path):
 # ---- 部署编排 ----
 # progress_callback(step_idx, status, msg)  # step_idx: 0-5, status: "busy"|"done"|"err"|"skip"
 
-def deploy(project_path, params, clients, tools_root, progress):
+def deploy(project_path, params, clients, tools_root, progress, python_path=None):
     """完整部署流程，逐步回调 progress"""
-    # ① 生成 hil_config_user.h
+    # ① 生成 hil_config_user.h（写入 tools_root/HIL，随下一步复制到工程）
     progress(0, "busy", "")
     try:
-        gen_hil_header(project_path, params)
+        gen_hil_header(tools_root, params)
         progress(0, "done", "已生成 hil_config_user.h 结构体头文件")
     except Exception as e:
         progress(0, "err", str(e)[:80])
 
-    # ② 复制 HIL/RTT
+    # ② 复制 HIL/RTT 到工程
     progress(1, "busy", "")
     try:
         copy_hil_rtt(tools_root, project_path)
@@ -309,13 +352,13 @@ def deploy(project_path, params, clients, tools_root, progress):
 
     # ③ COM 注入
     progress(2, "busy", "")
-    ok, msg = inject_keil_com(project_path)
+    ok, msg = inject_keil_xml(project_path)
     progress(2, "done" if ok else "err", msg)
 
     # ④ 编译
     if ok or True:  # COM 失败也继续编译（用户可能手动加了文件）
         progress(3, "busy", "")
-        ok3, msg3 = compile_project(project_path, tools_root)
+        ok3, msg3 = compile_project(project_path, tools_root, python_path=python_path)
         progress(3, "done" if ok3 else "err", msg3)
     else:
         progress(3, "skip", "注入失败，编译跳过")
@@ -323,7 +366,7 @@ def deploy(project_path, params, clients, tools_root, progress):
     # ⑤ 解析
     if ok3:
         progress(4, "busy", "")
-        ok4, msg4 = parse_symbols(project_path, tools_root)
+        ok4, msg4 = parse_symbols(project_path, tools_root, python_path=python_path)
         progress(4, "done" if ok4 else "err", msg4)
     else:
         progress(4, "skip", "无编译产物，解析跳过")

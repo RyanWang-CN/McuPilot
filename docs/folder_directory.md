@@ -1,57 +1,60 @@
-.\                            <-- 【总指挥部】上位机自动化网关
+.\                            <-- 【工具链根目录】McuPilot 单片机 AI 协同开发工具链
 │
-├── mcp_server.py               <-- [AI 交互大脑] MCP 服务端，负责将下方 skills 暴露给 Roo Code 调用
+├── run_setup.py                 <-- [配置向导入口] 双击启动，Splash + 环境检测 + GUI 部署
+├── mcp_server.py                <-- [AI 交互大脑] MCP 服务端，将下方 skills 暴露给 AI 调用
 │
-├── core\                       <-- [基建引擎层] 干脏活累活的底层工具（只管物理和解析，不懂业务）
-│   ├── auto_config_builder.py  # 自动构建配置
-│   ├── hil_parser.py           # 物理字典提取器（深度解析 .map 和 .axf 展平 DWARF 嵌套结构体）
-│   ├── keil_parser.py          # Keil 工程解析器
-│   └── mcu_mem_ctrl.py         # J-Link 物理驱动引擎（安全读写内存，处理对齐）
+├── core\                        <-- [基建引擎层]
+│   ├── auto_config_builder.py   # 自动构建 project_config.yaml
+│   ├── hil_parser.py            # DWARF/.map 解析器，生成 .hil_symbols.json
+│   ├── keil_parser.py           # Keil .uvprojx 工程解析
+│   ├── mcu_mem_ctrl.py          # J-Link 物理内存读写驱动
+│   ├── project_wizard.py        # Setup 向导后端（环境检测 / 代码生成 / XML 注入 / 编译 / 部署）
+│   └── doc_parser.py            # PDF 文档清洗（LlamaCloud）
 │
-├── skills\                     <-- [业务技能层] 面向具体任务的 API 集合（被 mcp_server 调度）
-│   │
-│   ├── build\                  <-- 【技能簇：工程构建与部署】
-│   │   ├── compile_auto.py     # 自动化调用 Keil 命令行进行编译
-│   │   ├── flash_auto.py       # 自动化调用 J-Flash/J-Link 烧录 Hex 固件
-│   │   └── reset.py            # 硬件复位控制
-│   │
-│   ├── injection\              <-- 【技能簇：状态篡改与热更新】
-│   │   └── mcp_hil_bridge.py   # HIL 核心桥梁（参数防倒灌克隆、字节拆解写入、协议号握手切换）
-│   │
-│   └── perception\             <-- 【技能簇：系统状态感知与反馈】
-│       ├── monitor_rtt_auto.py # 自动化 RTT 监控
-│       ├── rtt_exchange_auto.py# RTT 双向数据交换交互
-│       └── rtt_listener.py     # RTT 后台监听守护进程
+├── skills\                      <-- [业务技能层]
+│   ├── build\                   # compile_auto / flash_auto / reset
+│   ├── injection\               # mcp_hil_bridge（HIL 热注入核心）
+│   └── perception\              # monitor_rtt_auto / rtt_exchange_auto / rtt_listener
 │
-└── docs\                       <-- [文档库]
-    ├── folder_directory.md     # 文件夹目录
-    └── SYSTEM_ARCHITECTURE.md  # 架构说明文档
+├── HIL\                         <-- [MCU 固件底座] 热更新注入代码
+│   ├── hil_inject.c / hil_inject.h    # 注入逻辑实现
+│   ├── hil_config_user.h              # 用户参数结构体模板
+│   └── example_main.c                 # 集成示例
+│
+├── RTT\                         <-- [SEGGER RTT 协议栈] 官方开源代码
+│   ├── SEGGER_RTT.c / SEGGER_RTT.h / SEGGER_RTT_printf.c / SEGGER_RTT_Conf.h
+│
+├── assets\                      <-- [GUI 前端资源]
+│   ├── setup_ui_v2_working.html # 当前 GUI 页面（Vue + Tailwind）
+│   ├── tailwind.js / vue.js     # 前端框架（本地化，离线可用）
+│   ├── mcupilot_iconsp.png      # Splash/GUI 图标
+│   └── mcupilot_icon.ico        # exe 窗口图标
+│
+├── tests\                       <-- [单元测试]
+├── knowledge_base\              <-- [MCU 参考手册 SVD]
+├── docs\                        <-- [文档]
+├── mcupilot_icon.svg            # GitHub 展示图标（深色版）
+├── mcupilot_iconsp.svg          # 软件内用图标（浅色版）
+├── setup.bat / setup.ps1        # Python 环境一键安装
+├── build_kb.py                  # 知识库构建器
+├── requirements.txt             # pip 依赖
+└── LICENSE                      # MIT
 
 
 ===================================================================================
 
-.\your_mcu_project\            <-- 【目标工程目录】具体的单片机业务代码（如雷达、电机）
+.\your_mcu_project\            <-- 【目标工程目录】部署后自动生成以下结构
     │
-    ├── .hil_symbols.json       # [动态生成] 物理内存字典（真理源泉：存放 HIL 变量的绝对物理地址与展平偏移量）
-    ├── project_config.yaml     # 硬件配置文件（指明当前工程的 MCU 型号等元数据）
+    ├── .hil_symbols.json       # 物理内存字典
+    ├── project_config.yaml     # 硬件配置
     │
-    ├── HIL\                    <-- [HIL 本地组件] 单片机端的热更新底座代码
-    │   ├── hil_config_user.h   # 用户设置区（定义大一统结构体 HIL_Global_Params_t，以及暴露白名单变量）
-    │   ├── hil_inject.h        # 注入层头文件（声明 HIL_GET_ACTIVE_CFG 零开销宏与对外接口）
-    │   └── hil_inject.c        # 注入层实现（包含 HIL_Inject_Task 哨兵任务，负责关中断执行原子化的版本翻转与指针同步）
+    ├── HIL\                    # HIL 固件底座（自动复制）
+    │   ├── hil_config_user.h   # 用户自定义参数结构体（自动生成）
+    │   ├── hil_inject.h / hil_inject.c
+    │   └── example_main.c      # 集成参考
     │
-    ├── RTT\                    <-- [调试与通信组件] SEGGER RTT 库（用于系统状态的高速感知与输出）
-    │   ├── SEGGER_RTT.h        # RTT 核心头文件
-    │   ├── SEGGER_RTT.c        # RTT 核心实现（通过内存映射实现的高速打印与指令接收）
-    │   └── SEGGER_RTT_Conf.h   # RTT 配置文件（定义 Buffer 大小及非阻塞模式等关键配置）
+    ├── RTT\                    # SEGGER RTT 库（自动复制）
+    │   └── SEGGER_RTT.c / .h / _printf.c / _Conf.h
     │
-    ├── Listings\               # Keil 编译生成的 .map 文件存放地（用于提取基地址）
-    ├── Objects\                # Keil 编译生成的 .axf 和 .hex 文件存放（用于提取 DWARF 嵌套信息及烧录）
-    └── src\                    # 单片机业务逻辑源码（内部纯净调用 p_cfg->xxx，与底层热更新完全解耦）
-
-
-
-
-
-
-
+    ├── output\                 # Keil 编译产物 (.map / .axf / .hex)
+    └── src\                    # 业务逻辑源码

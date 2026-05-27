@@ -52,3 +52,7 @@ memory/
 # ==================== 操作系统 ====================
 Thumbs.db
 .DS_Store
+build/
+dist/
+.spec
+__pycache__/
