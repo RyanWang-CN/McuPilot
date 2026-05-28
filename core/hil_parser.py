@@ -73,10 +73,35 @@ def parse_struct_layout_recursive(struct_die, base_offset=0):
                 nested_layout = parse_struct_layout_recursive(child_struct_die, current_abs_offset)
                 layout.update(nested_layout) # 把底层的字典拍平合并上来
             else:
-                # 是基础数据类型（int, float 等），直接记录
+                # 是基础数据类型（int, float 等），记录偏移 + 类型 + 大小
                 if m_name:
-                    layout[m_name] = current_abs_offset
+                    t_name, t_size = _resolve_base_type(child)
+                    layout[m_name] = {"offset": current_abs_offset, "type": t_name, "size": t_size}
     return layout
+
+
+def _resolve_base_type(die):
+    """从 DWARF 成员 DIE 解析基础类型名和字节大小 (float / uint16_t 等)"""
+    if 'DW_AT_type' not in die.attributes:
+        return "uint32_t", 4
+    t = die.get_DIE_from_attribute('DW_AT_type')
+    for _ in range(5):
+        if t.tag == 'DW_TAG_base_type':
+            name = None
+            na = t.attributes.get('DW_AT_name')
+            if na:
+                name = na.value.decode('utf-8') if isinstance(na.value, bytes) else str(na.value)
+            sz = t.attributes.get('DW_AT_byte_size')
+            size = sz.value if sz and not isinstance(sz.value, bytes) else 4
+            if not name:
+                name = {1: "uint8_t", 2: "uint16_t", 4: "uint32_t"}.get(size, f"uint{size*8}_t")
+            return name, size
+        if t.tag in ('DW_TAG_const_type', 'DW_TAG_volatile_type', 'DW_TAG_typedef'):
+            if 'DW_AT_type' in t.attributes:
+                t = t.get_DIE_from_attribute('DW_AT_type')
+                continue
+        break
+    return "uint32_t", 4
 
 
 

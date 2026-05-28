@@ -6,6 +6,7 @@ import sys
 import os
 import json
 import time
+import struct
 
 # 【动态寻址终极修复】：脚本在 skills/injection 下，需要向上退两级回到 McuPilot 根目录
 TOOL_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -173,33 +174,97 @@ def run_mcp_verification(payload_json_str):
 
         # =================【3. 精准注入：差分写入 (Delta)】=================
 
-        sorted_offsets = sorted(layout.items(), key=lambda x: x[1])
+        sorted_offsets = sorted(layout.items(), key=lambda x: (x[1]["offset"] if isinstance(x[1], dict) else x[1]))
 
-        
+
 
         for param_name, target_val in params_to_inject.items():
 
-            target_phys_addr = base_addr + (target_idx * elem_size) + layout[param_name]
+            field = layout[param_name]
+            # 兼容旧 layout 格式 (纯整数偏移)
+            if isinstance(field, dict):
+                field_offset = field["offset"]
+                field_type = field.get("type", "uint32_t")
+                field_size = field.get("size", 4)
+            else:
+                field_offset = field
+                field_type = "uint32_t"
+                field_size = 4
 
-            
+            target_phys_addr = base_addr + (target_idx * elem_size) + field_offset
 
             curr_pos = [n for n, o in sorted_offsets].index(param_name)
 
+            next_field = sorted_offsets[curr_pos+1][1]
+            next_offset = next_field["offset"] if isinstance(next_field, dict) else next_field
+
             if curr_pos < len(sorted_offsets) - 1:
 
-                byte_size = sorted_offsets[curr_pos+1][1] - layout[param_name]
+                byte_size = next_offset - field_offset
 
             else:
 
-                byte_size = elem_size - layout[param_name]
+                byte_size = elem_size - field_offset
 
 
 
-            bits = byte_size * 8
+            # ── 类型感知编码（非阻塞：尽力转换 + 警告）──
 
-            mask = (1 << bits) - 1
+            warn_msg = None
 
-            val_to_write = int(target_val) & mask
+            if field_type == "float":
+
+                try:
+
+                    fval = float(target_val)
+
+                except (ValueError, TypeError):
+
+                    raise ValueError(f"参数 {param_name} 为 float 类型，收到的值 '{target_val}' 无法转换为浮点数")
+
+                if not isinstance(target_val, float):
+
+                    warn_msg = f"{param_name}: {type(target_val).__name__} {target_val} 自动转为 float {fval}"
+
+                val_bytes = struct.pack('<f', fval)
+
+                val_to_write = struct.unpack('<I', val_bytes)[0]
+
+            else:
+
+                try:
+
+                    ival = int(target_val)
+
+                except (ValueError, TypeError):
+
+                    raise ValueError(f"参数 {param_name} 为 {field_type} 类型，收到的值 '{target_val}' 无法转换为整数")
+
+                max_val = (1 << (field_size * 8)) - 1
+
+                if isinstance(target_val, float) and float(int(target_val)) != float(target_val):
+
+                    ival = int(target_val)
+
+                    warn_msg = f"{param_name}: float {target_val} 截断为 int {ival}"
+
+                if ival > max_val:
+
+                    ival = max_val
+
+                    warn_msg = f"{param_name}: 值溢出 {field_type} 范围，钳位到 {max_val}"
+
+                if ival < 0:
+
+                    ival = 0
+
+                    warn_msg = f"{param_name}: 负值钳位到 0"
+
+                val_to_write = ival
+
+            if warn_msg:
+
+                result.setdefault("warnings", []).append(warn_msg)
 
 
 
@@ -225,17 +290,9 @@ def run_mcp_verification(payload_json_str):
 
             else:
 
-                # 【终极修复】：如果没有对齐，将数据拆解成单字节数组 (小端模式) 写入
-
-                # 无论 byte_size 是 4 还是 2 还是 1，全部拆开！
-
                 bytes_to_write = [(val_to_write >> (8 * i)) & 0xFF for i in range(byte_size)]
 
                 injector.jlink.memory_write8(target_phys_addr, bytes_to_write)
-
-                
-
-                # 回读时也要按字节读取，并重新拼装成一个大整数
 
                 read_bytes = injector.jlink.memory_read8(target_phys_addr, byte_size)
 
@@ -247,13 +304,21 @@ def run_mcp_verification(payload_json_str):
 
 
 
-            if (read_back & mask) != (val_to_write & mask):
+            if (read_back & ((1 << (byte_size * 8)) - 1)) != (val_to_write & ((1 << (byte_size * 8)) - 1)):
 
                 raise ValueError(f"参数 {param_name} 写入校验失败！")
 
 
 
-            display_val = read_back - (1 << bits) if read_back >= (1 << (bits - 1)) else read_back
+            if field_type == "float":
+
+                display_val = round(struct.unpack('<f', struct.pack('<I', read_back))[0], 6)
+
+            else:
+
+                bits = byte_size * 8
+
+                display_val = read_back - (1 << bits) if read_back >= (1 << (bits - 1)) else read_back
 
             result["injected"][param_name] = display_val
 
