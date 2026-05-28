@@ -112,19 +112,19 @@ if __name__ == "__main__":
         
     try:
         result_path = get_or_update_map_path(test_workspace, force_update=True)
-        print(f"\n✅ 成功计算出 Map 文件预期路径:\n-> {result_path}")
+        print(f"\n[OK] 成功计算出 Map 文件预期路径:\n-> {result_path}")
         
         # 验证缓存文件内容
         cache_file = os.path.join(test_workspace, CACHE_FILE_NAME)
         if os.path.exists(cache_file):
             with open(cache_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                print(f"✅ 成功提取到单片机型号: {data.get('device')}")
+                print(f"[OK] 成功提取到单片机型号: {data.get('device')}")
         
         if os.path.exists(result_path):
             print(f"📦 状态: 文件已存在，大小: {os.path.getsize(result_path)/1024:.1f} KB")
         else:
-            print(f"⚠️ 状态: 文件暂不存在 (可能需要先在 Keil 中编译一次 build_project)")
+            print(f"[WARN] 状态: 文件暂不存在 (可能需要先在 Keil 中编译一次 build_project)")
             
     except Exception as err:
-        print(f"\n❌ 解析失败: {err}")
+        print(f"\n[ERR] 解析失败: {err}")

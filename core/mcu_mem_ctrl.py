@@ -63,14 +63,14 @@ class MCUInjector:
             self.jlink.set_tif(pylink.enums.JLinkInterfaces.SWD)
             # 尝试用精准型号连接（以解锁特定 Flash/RAM 算法）
             self.jlink.connect(target_mcu, speed=4000)
-            print(f"✅ J-Link 物理连接成功！")
+            print(f"[OK] J-Link 物理连接成功！")
         except pylink.errors.JLinkException as e:
-            print(f"⚠️ 精准型号连接失败 ({e})，正在降级为通用 {target_mcu} 内核盲连...")
+            print(f"[WARN] 精准型号连接失败 ({e})，正在降级为通用 {target_mcu} 内核盲连...")
             try:
                 self.jlink.connect("Cortex-M0+", speed=4000)
-                print(f"✅ J-Link 降级连接成功！")
+                print(f"[OK] J-Link 降级连接成功！")
             except Exception as fallback_e:
-                raise RuntimeError(f"❌ 致命错误：J-Link 物理连接彻底失败。{fallback_e}")
+                raise RuntimeError(f"[ERR] 致命错误：J-Link 物理连接彻底失败。{fallback_e}")
 
     def disconnect(self):
         if self.jlink:
@@ -332,7 +332,7 @@ class MCUInjector:
                     hit_pc = self.jlink.register_read(15)
                     # ====================================================
                     # 【物理验证专用补丁】
-                    print(f"\n[物理验证] 🎯 已命中断点！单片机现已强制挂起！")
+                    print(f"\n[物理验证] [HIT] 已命中断点！单片机现已强制挂起！")
                     print(f"[物理验证] 正在执行 6 秒死锁保活，请立刻去看板子/量电压...")
                     print(f"[物理验证] 验证完毕后，请手动在终端按 Ctrl+C 强退本脚本。")
                     time.sleep(6)  # <--- 加在这里！死死攥住 J-Link 不放！
@@ -349,10 +349,10 @@ class MCUInjector:
 
         # 7. 返回战报
         if triggered:
-            return f"🎯 命中！已在 '{target_symbol}' (物理地址 0x{aligned_addr:X}) 触发断点并暂停 MCU。当前 PC: {hex(hit_pc)}"
+            return f"[HIT] 命中！已在 '{target_symbol}' (物理地址 0x{aligned_addr:X}) 触发断点并暂停 MCU。当前 PC: {hex(hit_pc)}"
         else:
             # 没命中则保持原样，直接返回
-            return f"⏳ 超时未命中：在 {timeout_s} 秒的监听期内，代码未能运行到 '{target_symbol}'。"
+            return f"[TIMEOUT] 超时未命中：在 {timeout_s} 秒的监听期内，代码未能运行到 '{target_symbol}'。"
 
 
 

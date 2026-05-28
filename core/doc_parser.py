@@ -31,12 +31,12 @@ def main():
 
     # 3. 防呆检查
     if not input_pdf_path.exists():
-        print(f"❌ [错误] 找不到输入文件: {input_pdf_path}")
+        print(f"[ERR] [错误] 找不到输入文件: {input_pdf_path}")
         sys.exit(1)
         
     api_key = os.environ.get("LLAMA_CLOUD_API_KEY")
     if not api_key:
-        print(f"❌ [错误] 缺失 API Key！请确保 {env_path} 存在且配置正确")
+        print(f"[ERR] [错误] 缺失 API Key！请确保 {env_path} 存在且配置正确")
         sys.exit(1)
 
     print(f"[*] 任务启动: {input_pdf_path.name}")
@@ -69,10 +69,10 @@ def main():
         # 原子替换
         temp_out_path.replace(final_out_path)
         success = True
-        print(f"✅ [成功] Markdown 已安全着陆: {final_out_path}")
+        print(f"[OK] [成功] Markdown 已安全着陆: {final_out_path}")
         
     except BaseException as e: 
-        print(f"\n❌ [中断/异常] 任务已终止: {e}")
+        print(f"\n[ERR] [中断/异常] 任务已终止: {e}")
         sys.exit(1)
         
     finally:
