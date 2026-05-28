@@ -175,11 +175,16 @@ def inject_keil_xml(project_path):
             f_hil = ET.SubElement(g_hil, "Files")
             for fc in glob.glob(os.path.join(proj_dir, "HIL", "*.c")):
                 if os.path.basename(fc) == "example_main.c":
-                    continue  # 参考模板，不参与编译
+                    continue
                 fe = ET.SubElement(f_hil, "File")
                 ET.SubElement(fe, "FileName").text = os.path.basename(fc)
                 ET.SubElement(fe, "FileType").text = "1"
                 ET.SubElement(fe, "FilePath").text = "./HIL/" + os.path.basename(fc)
+            for fh in glob.glob(os.path.join(proj_dir, "HIL", "*.h")):
+                fe = ET.SubElement(f_hil, "File")
+                ET.SubElement(fe, "FileName").text = os.path.basename(fh)
+                ET.SubElement(fe, "FileType").text = "5"
+                ET.SubElement(fe, "FilePath").text = "./HIL/" + os.path.basename(fh)
 
         # RTT 组
         if "RTT" not in existing:
@@ -191,6 +196,11 @@ def inject_keil_xml(project_path):
                 ET.SubElement(fe, "FileName").text = os.path.basename(fc)
                 ET.SubElement(fe, "FileType").text = "1"
                 ET.SubElement(fe, "FilePath").text = "./RTT/" + os.path.basename(fc)
+            for fh in glob.glob(os.path.join(proj_dir, "RTT", "*.h")):
+                fe = ET.SubElement(f_rtt, "File")
+                ET.SubElement(fe, "FileName").text = os.path.basename(fh)
+                ET.SubElement(fe, "FileType").text = "5"
+                ET.SubElement(fe, "FilePath").text = "./RTT/" + os.path.basename(fh)
 
         # 追加 include 路径（只改 C 编译器第一个非空 IncludePath，防重复）
         for inc in root.iter("IncludePath"):
@@ -215,6 +225,191 @@ def inject_keil_xml(project_path):
 def _type_size(t):
     m = {"uint8_t":1,"int8_t":1,"uint16_t":2,"int16_t":2,"uint32_t":4,"int32_t":4,"float":4}
     return m.get(t, 4)
+
+# ---- main.c 自动注入 ----
+
+RTOS_KEYWORDS = ['vTaskStartScheduler', 'xTaskCreate', 'OSStart', 'OSTaskCreate',
+                 'rt_thread_startup', 'rt_system_scheduler_start', 'schedule']
+
+HIL_INIT_SNIPPET = '''    HIL_InjectConfig_t hil_cfg = {
+        .buf_a        = HIL_CFG_A,
+        .buf_b        = HIL_CFG_B,
+        .buf_size     = HIL_CFG_SIZE,
+        .p_version    = HIL_P_VER,
+        .p_active_idx = HIL_P_IDX,
+    };
+    HIL_Inject_Init(&hil_cfg);
+'''
+
+HIL_TASK_SNIPPET = '        HIL_Inject_Task();'
+
+def inject_main_c(project_path):
+    """自动修改 main.c：加入 HIL 初始化代码。返回 (ok, msg)"""
+    import re, shutil
+    # 1. 找 main 函数所在的 .c 文件
+    main_file = None
+    for cfile in glob.glob(os.path.join(project_path, "**", "*.c"), recursive=True):
+        # 跳过 HIL/RTT 目录
+        if 'HIL' in cfile.replace(os.sep, '/').split('/') or \
+           'RTT' in cfile.replace(os.sep, '/').split('/'):
+            continue
+        try:
+            with open(cfile, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+        except:
+            continue
+        # 找 main 函数签名（不在注释、不在字符串内的）
+        if re.search(r'(?<!//.*)\bmain\s*\(', content):
+            main_file = cfile
+            break
+    if not main_file:
+        return False, "未找到 main.c，请手动添加 HIL 代码"
+
+    with open(main_file, 'r', encoding='utf-8', errors='ignore') as f:
+        content = f.read()
+
+    # 2. 幂等性检查
+    if 'HIL_Inject_Init' in content:
+        return True, "HIL 代码已存在，跳过"
+
+    # 3. RTOS 检测
+    for kw in RTOS_KEYWORDS:
+        if kw in content:
+            return False, f"检测到 RTOS ({kw})，请手动将 HIL 代码加入主任务"
+
+    # 4. 轻量括号栈：定位 main 函数体范围
+    m = re.search(r'(?<!//.*)\bmain\s*\(', content)
+    if not m:
+        return False, "无法定位 main 函数签名"
+    main_start = m.start()
+    # 从签名的 { 开始计括号层级
+    brace_start = content.find('{', m.end())
+    if brace_start == -1:
+        return False, "main 函数体缺失 {"
+
+    depth = 0
+    main_body_end = -1
+    for i in range(brace_start, len(content)):
+        if content[i] == '{':
+            depth += 1
+        elif content[i] == '}':
+            depth -= 1
+            if depth == 0:
+                main_body_end = i
+                break
+    if main_body_end == -1:
+        return False, "括号不匹配，无法定位 main 函数体结束位置"
+
+    # 5. 在 main 一层（depth=1）中找 while(1) 或 for(;;)
+    main_body = content[brace_start:main_body_end + 1]
+    depth = 0
+    loop_anchor = -1
+    loop_open_brace = -1
+    i = 0
+    while i < len(main_body):
+        ch = main_body[i]
+        if ch == '{':
+            depth += 1
+            i += 1
+            continue
+        elif ch == '}':
+            depth -= 1
+            i += 1
+            continue
+        if depth == 1:
+            rest = main_body[i:i + 100]
+            mw = re.match(r'(while\s*\(.+?\)|for\s*\(.*?\))', rest)
+            if mw:
+                loop_anchor = brace_start + i + mw.end()
+                j = i + mw.end()
+                while j < len(main_body):
+                    if main_body[j] == '{':
+                        loop_open_brace = brace_start + j
+                        break
+                    elif main_body[j] not in ' \t\n\r':
+                        break
+                    j += 1
+                if loop_open_brace > 0:
+                    break
+        i += 1
+
+    if loop_anchor == -1 or loop_open_brace == -1:
+        return False, "未找到裸机主循环，请手动添加 HIL_Inject_Task()"
+
+    # 6. 执行插入
+    bak = main_file + ".mcupilot.bak"
+    if not os.path.exists(bak):
+        shutil.copy2(main_file, bak)
+
+    globals_block = (
+        'volatile HIL_Global_Params_t HIL_WHITELIST g_hil_buf[2] HIL_ALIGNED(4);\n'
+        'volatile uint8_t HIL_WHITELIST g_config_version;\n'
+        'volatile uint8_t HIL_WHITELIST g_active_idx;\n'
+    )
+    include_block = '#include "hil_config_user.h"\n#include "hil_inject.h"\n\n'
+
+    # 避免 #ifdef 陷阱：直接以 main 函数所在行为锚点，插在它上方
+    main_line_start = content.rfind('\n', 0, main_start)
+    if main_line_start == -1:
+        main_line_start = 0
+    else:
+        main_line_start += 1
+    content = content[:main_line_start] + include_block + globals_block + content[main_line_start:]
+
+    # 重建位置信息（因为 content 已被修改）
+    m2 = re.search(r'(?<!//.*)\bmain\s*\(', content)
+    if not m2:
+        return False, "插入后无法定位 main"
+    brace_start2 = content.find('{', m2.end())
+    main_body2 = content[brace_start2:]
+    depth = 0
+    loop_anchor2 = -1
+    loop_open_brace2 = -1
+    i = 0
+    while i < len(main_body2):
+        ch = main_body2[i]
+        if ch == '{':
+            depth += 1
+            i += 1
+            continue
+        elif ch == '}':
+            depth -= 1
+            i += 1
+            continue
+        if depth == 1:
+            rest = main_body2[i:i + 100]
+            mw = re.match(r'(while\s*\(.+?\)|for\s*\(.*?\))', rest)
+            if mw:
+                loop_anchor2 = brace_start2 + i + mw.end()
+                j = i + mw.end()
+                while j < len(main_body2):
+                    if main_body2[j] == '{':
+                        loop_open_brace2 = brace_start2 + j
+                        break
+                    elif main_body2[j] not in ' \t\n\r':
+                        break
+                    j += 1
+                if loop_open_brace2 > 0:
+                    break
+        i += 1
+
+    # 插入 HIL_Init 在循环上方
+    if loop_anchor2 > 0:
+        line_start = content.rfind('\n', 0, loop_anchor2) + 1
+        content = (content[:line_start] + HIL_INIT_SNIPPET + '\n' +
+                   content[line_start:])
+        loop_open_brace2 += len(HIL_INIT_SNIPPET) + 1
+
+    # 插入 HIL_Inject_Task 在循环体第一个 { 后
+    if loop_open_brace2 > 0:
+        content = (content[:loop_open_brace2 + 1] + '\n' +
+                   HIL_TASK_SNIPPET +
+                   content[loop_open_brace2 + 1:])
+
+    with open(main_file, 'w', encoding='utf-8') as f:
+        f.write(content)
+
+    return True, "已自动注入 HIL 代码到 " + os.path.basename(main_file)
 
 # ---- 编译 & 解析 ----
 
@@ -273,13 +468,17 @@ def parse_symbols(project_path, tools_root, python_path=None):
 
 # ---- MCP 注册 ----
 
-def register_mcp(project_path, clients, tools_root):
+def register_mcp(project_path, clients, tools_root, python_path=None):
     """注册 MCP Server 到所选 AI 客户端"""
-    mcp_path = os.path.join(tools_root, "mcp_server.py")
+    if getattr(sys, 'frozen', False):
+        mcp_path = os.path.join(os.path.dirname(sys.executable), '_internal', 'mcp_server.py')
+    else:
+        mcp_path = os.path.join(tools_root, "mcp_server.py")
+    mcp_cmd = python_path or sys.executable or "python"
     mcp_config = {
         "mcpServers": {
             "mcupilot": {
-                "command": sys.executable or "python",
+                "command": mcp_cmd,
                 "args": [mcp_path],
             }
         }
@@ -351,10 +550,18 @@ def deploy(project_path, params, clients, tools_root, progress, python_path=None
     except Exception as e:
         progress(1, "err", str(e)[:80])
 
-    # ③ COM 注入
+    # ③ COM 注入 + main.c 自动适配
     progress(2, "busy", "")
-    ok, msg = inject_keil_xml(project_path)
-    progress(2, "done" if ok else "err", msg)
+    ok_xml, msg_xml = inject_keil_xml(project_path)
+    ok_main, msg_main = inject_main_c(project_path)
+    if ok_xml and ok_main:
+        progress(2, "done", "已注入 Keil 工程并自动适配 main.c")
+    elif ok_xml:
+        progress(2, "done", f"已注入 Keil 工程；main.c: {msg_main}")
+    elif ok_main:
+        progress(2, "err", f"XML 注入失败: {msg_xml}")
+    else:
+        progress(2, "warn", f"XML: {msg_xml}；main.c: {msg_main}")
 
     # ④ 编译
     if ok or True:  # COM 失败也继续编译（用户可能手动加了文件）
@@ -374,5 +581,5 @@ def deploy(project_path, params, clients, tools_root, progress, python_path=None
 
     # ⑥ 注册 MCP
     progress(5, "busy", "")
-    ok5, msg5 = register_mcp(project_path, clients, tools_root)
+    ok5, msg5 = register_mcp(project_path, clients, tools_root, python_path=python_path)
     progress(5, "done" if ok5 else "err", msg5)
