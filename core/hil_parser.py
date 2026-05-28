@@ -121,7 +121,7 @@ def extract_dwarf_by_whitelist(axf_path, whitelist_names):
                                 symbols_dict[var_name]["is_struct"] = True
                                 symbols_dict[var_name]["element_size"] = struct_size
                                 symbols_dict[var_name]["layout"] = layout
-                                print(f"  🧬 成功解析结构体 [{var_name}]，单体大小: {struct_size} 字节")
+                                print(f"  [STRUCT] 成功解析结构体 [{var_name}]，单体大小: {struct_size} 字节")
 
     return symbols_dict
 
@@ -146,7 +146,7 @@ def generate_symbols_json(project_dir):
     axf_files = glob.glob(os.path.join(project_dir, "**", "*.axf"), recursive=True)
     
     if not map_files or not axf_files:
-        print("❌ 找不到 .map 或 .axf 文件！请确保工程已成功编译。")
+        print("[ERR] 找不到 .map 或 .axf 文件！请确保工程已成功编译。")
         return
         
     latest_map = max(map_files, key=os.path.getmtime)
@@ -166,9 +166,9 @@ def generate_symbols_json(project_dir):
 
         if not whitelist:
             # 关键2：干掉 return！改成打印警告，让程序继续往下走
-            print("⚠️ 警告: 未在 Map 中发现 .hil_expose 变量，字典将仅包含元数据。")
+            print("[WARN] 警告: 未在 Map 中发现 .hil_expose 变量，字典将仅包含元数据。")
         else:
-            print(f"🎯 提取到 {len(whitelist)} 个白名单变量: {', '.join(whitelist)}")
+            print(f"[HIL] 提取到 {len(whitelist)} 个白名单变量: {', '.join(whitelist)}")
             symbols = extract_dwarf_by_whitelist(latest_axf, whitelist)
         
         # 关键3：无论上面有没有提取到变量，都强行注入 __META__ 节点
@@ -183,9 +183,9 @@ def generate_symbols_json(project_dir):
         with open(cache_path, 'w', encoding='utf-8') as f:
             json.dump(symbols, f, indent=4)
             
-        print(f"\n✅ HIL 物理隔离字典已生成: {SYMBOLS_CACHE_FILE} (耗时: {(time.time() - start_time) * 1000:.1f} ms)")
+        print(f"\n[OK] HIL 物理隔离字典已生成: {SYMBOLS_CACHE_FILE} (耗时: {(time.time() - start_time) * 1000:.1f} ms)")
     except Exception as e:
-        print(f"❌ 解析失败: {e}")
+        print(f"[ERR] 解析失败: {e}")
 
 if __name__ == "__main__":
     # 坚决干掉 input()，改用 sys.argv 接收自动化网关传来的路径
