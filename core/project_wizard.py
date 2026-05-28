@@ -567,7 +567,7 @@ def deploy(project_path, params, clients, tools_root, progress, python_path=None
         progress(2, "warn", f"XML: {msg_xml}；main.c: {msg_main}")
 
     # ④ 编译
-    if ok or True:  # COM 失败也继续编译（用户可能手动加了文件）
+    if ok_xml or True:  # COM 失败也继续编译（用户可能手动加了文件）
         progress(3, "busy", "")
         ok3, msg3 = compile_project(project_path, tools_root, python_path=python_path)
         progress(3, "done" if ok3 else "err", msg3)
