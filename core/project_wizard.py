@@ -248,7 +248,8 @@ def inject_main_c(project_path):
     import re, shutil
     # 1. 找 main 函数所在的 .c 文件
     main_file = None
-    for cfile in glob.glob(os.path.join(project_path, "**", "*.c"), recursive=True):
+    search_root = os.path.join(project_path, "..")
+    for cfile in glob.glob(os.path.join(search_root, "**", "*.c"), recursive=True):
         # 跳过 HIL/RTT 目录
         if 'HIL' in cfile.replace(os.sep, '/').split('/') or \
            'RTT' in cfile.replace(os.sep, '/').split('/'):
@@ -259,7 +260,7 @@ def inject_main_c(project_path):
         except:
             continue
         # 找 main 函数签名（不在注释、不在字符串内的）
-        if re.search(r'(?<!//.*)\bmain\s*\(', content):
+        if re.search(r'\bmain\s*\(', content):
             main_file = cfile
             break
     if not main_file:
@@ -278,7 +279,7 @@ def inject_main_c(project_path):
             return False, f"检测到 RTOS ({kw})，请手动将 HIL 代码加入主任务"
 
     # 4. 轻量括号栈：定位 main 函数体范围
-    m = re.search(r'(?<!//.*)\bmain\s*\(', content)
+    m = re.search(r'\bmain\s*\(', content)
     if not m:
         return False, "无法定位 main 函数签名"
     main_start = m.start()
@@ -357,7 +358,7 @@ def inject_main_c(project_path):
     content = content[:main_line_start] + include_block + globals_block + content[main_line_start:]
 
     # 重建位置信息（因为 content 已被修改）
-    m2 = re.search(r'(?<!//.*)\bmain\s*\(', content)
+    m2 = re.search(r'\bmain\s*\(', content)
     if not m2:
         return False, "插入后无法定位 main"
     brace_start2 = content.find('{', m2.end())
