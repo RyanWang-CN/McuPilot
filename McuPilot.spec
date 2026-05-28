@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all, collect_submodules
 
-datas = [('assets', 'assets'), ('core', 'core'), ('skills', 'skills'), ('HIL', 'HIL'), ('RTT', 'RTT'), ('requirements.txt', '.'), ('mcupilot_iconsp.svg', '.'), ('mcupilot_icon.svg', '.')]
+datas = [('assets', 'assets'), ('core', 'core'), ('skills', 'skills'), ('HIL', 'HIL'), ('RTT', 'RTT'), ('requirements.txt', '.'), ('mcp_server.py', '.'), ('mcupilot_iconsp.svg', '.'), ('mcupilot_icon.svg', '.')]
 binaries = []
 hiddenimports = ['webview', 'PIL', 'tkinter', 'clr']
 tmp_ret = collect_all('tkinter')

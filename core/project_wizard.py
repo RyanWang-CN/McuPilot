@@ -180,11 +180,13 @@ def inject_keil_xml(project_path):
                 ET.SubElement(fe, "FileName").text = os.path.basename(fc)
                 ET.SubElement(fe, "FileType").text = "1"
                 ET.SubElement(fe, "FilePath").text = "./HIL/" + os.path.basename(fc)
-            for fh in glob.glob(os.path.join(proj_dir, "HIL", "*.h")):
+            # 只注入用户配置头文件（其他 .h 通过 include 路径找到）
+            hcfg = os.path.join(proj_dir, "HIL", "hil_config_user.h")
+            if os.path.exists(hcfg):
                 fe = ET.SubElement(f_hil, "File")
-                ET.SubElement(fe, "FileName").text = os.path.basename(fh)
+                ET.SubElement(fe, "FileName").text = "hil_config_user.h"
                 ET.SubElement(fe, "FileType").text = "5"
-                ET.SubElement(fe, "FilePath").text = "./HIL/" + os.path.basename(fh)
+                ET.SubElement(fe, "FilePath").text = "./HIL/hil_config_user.h"
 
         # RTT 组
         if "RTT" not in existing:

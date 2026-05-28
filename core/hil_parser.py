@@ -24,6 +24,19 @@ def get_whitelist_from_map(map_path):
                     whitelist.add(parts[0]) # 提取变量名
     return whitelist
 
+KNOWN_HIL_VARS = {'g_hil_buf', 'g_config_version', 'g_active_idx'}
+
+def _supplement_whitelist_from_axf(axf_path, whitelist):
+    """ARMCC V5 兼容：当 map 扫描只拿到段地址时，从 axf symtab 补充变量名"""
+    with open(axf_path, 'rb') as f:
+        elffile = ELFFile(f)
+        symtab = elffile.get_section_by_name('.symtab')
+        if symtab:
+            for sym in symtab.iter_symbols():
+                if sym.name in KNOWN_HIL_VARS:
+                    whitelist.add(sym.name)
+    return whitelist
+
 def get_struct_die(die):
     """递归穿透外壳，直达底层 Struct 定义"""
     current_die = die
@@ -146,8 +159,11 @@ def generate_symbols_json(project_dir):
     # 3. 解析与提取
     try:
         whitelist = get_whitelist_from_map(latest_map)
+        # ARMCC V5 兼容：map 扫描只拿到段地址时，从 axf symtab 补充变量名
+        if any(w.startswith('0x') or w.startswith('0X') for w in whitelist):
+            whitelist = _supplement_whitelist_from_axf(latest_axf, whitelist)
         symbols = {} # 关键1：提前初始化空字典
-        
+
         if not whitelist:
             # 关键2：干掉 return！改成打印警告，让程序继续往下走
             print("⚠️ 警告: 未在 Map 中发现 .hil_expose 变量，字典将仅包含元数据。")
