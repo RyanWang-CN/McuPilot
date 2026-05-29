@@ -134,7 +134,7 @@ python mcp_server.py
 | `hard_reset_mcu` | 物理硬复位单片机 |
 | `rtt_print` | 抓取 J-Link RTT 输出日志 |
 | `rtt_ask` | 向单片机下发 RTT 指令并监听回显 |
-| `take_sensor_snapshot` | 阻塞式抓取传感器二进制数据帧，离线解算统计特征 |
+| `rtt_capture` | 高速二进制数据采集 (简单流/多通道/异构帧 三模式) |
 | `inject_hil_parameters` | 向单片机物理内存热注入 HIL 测试参数 |
 | `read_hil_variable` | 读取单片机中全局变量的当前值 |
 | `check_mcu_status` | 检查单片机 CPU 运行状态（Running/Halted） |
