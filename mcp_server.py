@@ -107,13 +107,24 @@ def rtt_ask(command: str, timeout: int = 3) -> str:
     return run_module("skills.perception.rtt_exchange_auto", [command, "--timeout", str(timeout)])
 
 @mcp.tool()
-def rtt_capture(channel: int, duration_ms: int, frame_size: int, fields_json: str) -> str:
-    """通用 RTT 二进制数据采集。Channel 分离，定长 frame_size 切帧，按 fields 偏移提取后算 min/max/mean/variance。
-    fields_json 格式: '[{"name":"ocp_flag","offset":0,"type":"u8"},{"name":"dpc_val","offset":4,"type":"f32"}]'
-    支持类型: u8/u16/u32/i8/i16/i32/f32。"""
+def rtt_capture(channel: int, duration_ms: int, format: str = None, count: int = 1,
+                aggregate: str = None, frame_size: int = None, fields_json: str = None) -> str:
+    """通用 RTT 二进制数据采集。三种模式:
+    1) 简单流: format="f32", count=1 → 每 elem_size 一个值，一列统计
+    2) 多通道: format="u16", count=18, aggregate="max" → reshape 为 N×18 矩阵，沿通道轴聚合后统计
+    3) 异构帧: frame_size=8, fields='[{"name":"f","offset":0,"type":"u8"}]' → Numpy 结构化数组解析
+    支持类型: u8/u16/u32/i8/i16/i32/f32; aggregate: max/min/mean/sum/none."""
+    extra = []
+    if format:
+        extra += ["--format", format, "--count", str(count)]
+        if aggregate:
+            extra += ["--aggregate", aggregate]
+    if frame_size:
+        extra += ["--frame-size", str(frame_size)]
+    if fields_json:
+        extra += ["--fields", fields_json]
     return run_module("skills.perception.rtt_capture",
-                      ["--channel", str(channel), "--duration", str(duration_ms),
-                       "--frame-size", str(frame_size), "--fields", fields_json])
+                      ["--channel", str(channel), "--duration", str(duration_ms)] + extra)
 
 @mcp.tool()
 def take_sensor_snapshot(duration_ms: int = 500) -> str:
