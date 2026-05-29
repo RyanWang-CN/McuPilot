@@ -434,11 +434,30 @@ def _run_py_module(module, cwd, tools_root, args=None, python_path=None):
     except Exception as e:
         return False, str(e)[:100]
 
+def _ensure_hex_output(project_path):
+    """确保 Keil 工程启用 CreateHexFile，若未启用则自动开启"""
+    import xml.etree.ElementTree as ET
+    for uv in glob.glob(os.path.join(project_path, "*.uvprojx")):
+        try:
+            tree = ET.parse(uv)
+            changed = False
+            for e in tree.iter('CreateHexFile'):
+                if e.text and e.text.strip() == '0':
+                    e.text = '1'
+                    changed = True
+            if changed:
+                tree.write(uv, encoding="utf-8", xml_declaration=True)
+                return True
+        except Exception:
+            pass
+    return False
+
 def compile_project(project_path, tools_root, python_path=None):
     """先跑 auto_config_builder 生成 yaml，再编译。返回 (ok, msg)"""
     ok1, msg1 = _run_py_module("core.auto_config_builder", project_path, tools_root, python_path=python_path)
     if not ok1:
         return False, f"配置生成失败: {msg1[:100]}"
+    hex_fixed = _ensure_hex_output(project_path)
     ok2, msg2 = _run_py_module("skills.build.compile_auto", project_path, tools_root, python_path=python_path)
     if not ok2:
         return False, f"编译失败: {msg2[:200]}"
@@ -452,7 +471,10 @@ def compile_project(project_path, tools_root, python_path=None):
     warnings = data.get("warnings", 0)
     if errors > 0:
         return False, f"编译有 {errors} 个错误 ({warnings} warnings)"
-    return True, f"编译通过 ({errors} errors, {warnings} warnings)"
+    msg = f"编译通过 ({errors} errors, {warnings} warnings)"
+    if hex_fixed:
+        msg += "；已自动启用 Hex 输出"
+    return True, msg
 
 def parse_symbols(project_path, tools_root, python_path=None):
     """运行 hil_parser 生成 .hil_symbols.json。返回 (ok, msg)"""
