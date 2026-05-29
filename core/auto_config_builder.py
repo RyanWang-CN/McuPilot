@@ -39,7 +39,7 @@ def auto_sniff_environment():
 
     # 2. 自动寻找 Hex 文件 (防御性寻址：优先找 EIDE 的 build 目录，其次找 Keil 的 Objects)
     # 铁律：只相信物理磁盘上生成的最新文件
-    hex_files = glob.glob("build/**/*.hex", recursive=True) + glob.glob("Objects/*.hex")
+    hex_files = glob.glob("build/**/*.hex", recursive=True) + glob.glob("Objects/*.hex") + glob.glob("output/**/*.hex", recursive=True)
     if hex_files:
         # 取最新生成的 Hex
         latest_hex = max(hex_files, key=os.path.getmtime)

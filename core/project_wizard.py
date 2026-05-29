@@ -474,6 +474,25 @@ def compile_project(project_path, tools_root, python_path=None):
     msg = f"编译通过 ({errors} errors, {warnings} warnings)"
     if hex_fixed:
         msg += "；已自动启用 Hex 输出"
+    # 编译后更新 YAML 补上 hex 路径
+    try:
+        import yaml as _yaml
+        hex_files = glob.glob(os.path.join(project_path, "output", "**", "*.hex"), recursive=True)
+        if not hex_files:
+            hex_files = glob.glob(os.path.join(project_path, "build", "**", "*.hex"), recursive=True)
+        if not hex_files:
+            hex_files = glob.glob(os.path.join(project_path, "Objects", "*.hex"))
+        if hex_files:
+            hex_path = f"./{os.path.relpath(max(hex_files, key=os.path.getmtime), project_path).replace(os.sep, '/')}"
+            yaml_path = os.path.join(project_path, "project_config.yaml")
+            if os.path.exists(yaml_path):
+                with open(yaml_path, encoding="utf-8") as f:
+                    cfg = _yaml.safe_load(f) or {}
+                cfg.setdefault("paths", {})["hex_output"] = hex_path
+                with open(yaml_path, "w", encoding="utf-8") as f:
+                    _yaml.dump(cfg, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+    except Exception:
+        pass
     return True, msg
 
 def parse_symbols(project_path, tools_root, python_path=None):
