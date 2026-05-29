@@ -482,7 +482,7 @@ def register_mcp(project_path, clients, tools_root, python_path=None):
         "mcpServers": {
             "mcupilot": {
                 "command": mcp_cmd,
-                "args": [mcp_path],
+                "args": [mcp_path, "--project", os.path.abspath(project_path)],
             }
         }
     }
@@ -492,7 +492,7 @@ def register_mcp(project_path, clients, tools_root, python_path=None):
             path = os.path.expandvars(r"%USERPROFILE%\.claude\claude.json")
             results.append(_write_json(path, mcp_config))
         elif client == "Cline":
-            path = os.path.expandvars(r"%USERPROFILE%\.cline\settings\cline_mcp_settings.json")
+            path = os.path.expandvars(r"%APPDATA%\Code\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json")
             results.append(_write_json(path, mcp_config))
         elif client == "Codex CLI":
             path = os.path.expandvars(r"%USERPROFILE%\.codex\config.toml")

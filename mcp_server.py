@@ -12,40 +12,42 @@ from mcp.server.fastmcp import FastMCP
 # 初始化 MCP 服务器
 mcp = FastMCP("McuPilot_Server")
 
-# 获取工具箱的绝对根目录 (D:\McuPilot)
+# 获取工具箱的绝对根目录
 TOOLS_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+# 工程目录：通过 --project 参数或环境变量 MCUPILOT_PROJECT 指定
+PROJECT_DIR = None
+
+def _resolve_project_dir():
+    global PROJECT_DIR
+    if PROJECT_DIR:
+        return PROJECT_DIR
+    if "MCUPILOT_PROJECT" in os.environ:
+        return os.environ["MCUPILOT_PROJECT"]
+    return os.getcwd()
 
 def run_module(module_name, extra_args=None):
     """全局调用执行器：通过包名(-m)调用子文件夹中的脚本"""
     cmd_list = ["python", "-u", "-m", module_name]
-    
     if extra_args:
         cmd_list.extend(extra_args)
-        
+
     try:
         env = os.environ.copy()
         env['PYTHONIOENCODING'] = 'utf-8'
-        
-        # 【关键 1】：强行把 D:\McuPilot 加入环境变量
-        # 这样无论脚本在哪，都能顺利 from core.mcu_mem_ctrl import xxx
-        if 'PYTHONPATH' in env:
-            env['PYTHONPATH'] = f"{TOOLS_ROOT};{env['PYTHONPATH']}"
-        else:
-            env['PYTHONPATH'] = TOOLS_ROOT
+        env['PYTHONPATH'] = TOOLS_ROOT
 
-        # 【关键 2】：cwd 必须是 os.getcwd() 
-        # 这保证了脚本运行在当前打开的雷达工程目录（如 try - just_play）中
-        # 从而能精准找到工程专属的 project_config.yaml 和 .hil_symbols.json
+        prj = _resolve_project_dir()
         result = subprocess.run(
-            cmd_list, 
-            capture_output=True, 
-            text=True, 
+            cmd_list,
+            capture_output=True,
+            text=True,
             encoding='utf-8',
-            cwd=os.getcwd(), 
-            stdin=subprocess.DEVNULL,                
-            creationflags=subprocess.CREATE_NO_WINDOW,   
+            cwd=prj,
+            stdin=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NO_WINDOW,
             timeout=150,
-            env=env                                      
+            env=env
         )
         
         stdout_str = result.stdout.strip() if result.stdout else ""
@@ -249,4 +251,10 @@ def debug_run_to_breakpoint(target: str) -> str:
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--project", default=None, help="MCU 工程目录")
+    args, _ = parser.parse_known_args()
+    if args.project:
+        PROJECT_DIR = args.project
     mcp.run()
