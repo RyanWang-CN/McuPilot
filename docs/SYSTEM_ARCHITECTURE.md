@@ -44,7 +44,7 @@
 ## 日常使用流
 
 ```
-AI 客户端 (Claude Code / Roo Code / Codex)
+AI 客户端 (Claude Code / Cline / Codex)
     │
     │ MCP 协议 (22 个工具)
     ▼

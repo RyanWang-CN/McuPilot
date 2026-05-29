@@ -491,8 +491,8 @@ def register_mcp(project_path, clients, tools_root, python_path=None):
         if client == "Claude Code":
             path = os.path.expandvars(r"%USERPROFILE%\.claude\claude.json")
             results.append(_write_json(path, mcp_config))
-        elif client == "Roo Code":
-            path = os.path.join(project_path, ".vscode", "mcp.json")
+        elif client == "Cline":
+            path = os.path.expandvars(r"%USERPROFILE%\.cline\settings\cline_mcp_settings.json")
             results.append(_write_json(path, mcp_config))
         elif client == "Codex CLI":
             path = os.path.expandvars(r"%USERPROFILE%\.codex\config.toml")

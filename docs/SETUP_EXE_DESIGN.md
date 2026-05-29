@@ -41,7 +41,7 @@
         │   │   ├─ 列：变量名 | 类型(下拉) | 默认值 | 删除按钮
         │   │   └─ [+ 添加参数] 按钮
         │   ├─ 勾选 AI 客户端
-        │   │   ☐ Claude Code    ☐ Roo Code    ☐ Codex CLI
+        │   │   ☐ Claude Code    ☐ Cline    ☐ Codex CLI
         │   └─ [下一步] 按钮
         │
         ├─ 【页面二：确认部署】
@@ -155,7 +155,7 @@ pywin32>=305
 │  [+ 添加参数]                                         │
 │                                                      │
 │  ◉ AI 客户端                                         │
-│  ☑ Claude Code    ☑ Roo Code    ☐ Codex CLI          │
+│  ☑ Claude Code    ☑ Cline    ☐ Codex CLI          │
 │                                                      │
 │                              [上一步]  [下一步 ▸]      │
 └──────────────────────────────────────────────────────┘
@@ -179,7 +179,7 @@ pywin32>=305
 │  │ 工程路径:     C:\Projects\hc32_radar           │    │
 │  │ 芯片型号:     HC32F460                        │    │
 │  │ 热修参数:     3 个 (threshold, gain, ...)      │    │
-│  │ AI 客户端:    Claude Code, Roo Code            │    │
+│  │ AI 客户端:    Claude Code, Cline            │    │
 │  └──────────────────────────────────────────────┘    │
 │                                                      │
 │  [开始部署]                                           │
@@ -290,7 +290,7 @@ subprocess.run(
 | 客户端 | 配置文件路径 | 写入内容 |
 |--------|-------------|---------|
 | Claude Code | `%USERPROFILE%\.claude\claude.json` | JSON: `{"mcpServers": {"mcupilot": {...}}}` |
-| Roo Code | `<工程目录>\.vscode\mcp.json` | 标准 MCP JSON 配置 |
+| Cline | `%USERPROFILE%\.cline\settings\cline_mcp_settings.json` | 标准 MCP JSON 配置 |
 | Codex CLI | `%USERPROFILE%\.codex\config.toml` | TOML: `[[mcp_servers]]` |
 
 - 如果配置文件已存在包含其他 MCP Server，做增量合并而非覆盖
