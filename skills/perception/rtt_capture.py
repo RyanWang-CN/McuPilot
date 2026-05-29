@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """McuPilot 通用 RTT 二进制数据采集 (Channel 分离, 定长帧, 结构化统计)"""
-import sys, os, time, glob, json, argparse
+import sys, os, time, glob, json, argparse, warnings
 import yaml
 import pylink
 import numpy as np
 from pathlib import Path
+
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 STRUCT_MAP = {"u8":"B","u16":"H","u32":"I","i8":"b","i16":"h","i32":"i","f32":"f"}
 # fmt: off
