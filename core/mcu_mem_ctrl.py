@@ -139,11 +139,13 @@ class MCUInjector:
             "emulator_sn": getattr(self.jlink, 'serial_number', 'Unknown')
         }
         
-        # 安全读取电压
+        # 安全读取电压（兼容外部供电目标板）
         try:
-            info["target_voltage_mV"] = self.jlink.target_voltage
+            hw = self.jlink.hardware_status
+            v = getattr(hw, 'VTarget', 0)
+            info["target_voltage_mV"] = v
         except Exception:
-            info["target_voltage_mV"] = "Read Failed"
+            info["target_voltage_mV"] = 0
             
         # 安全读取 CPU 内核名称
         try:
