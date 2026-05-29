@@ -26,7 +26,7 @@ def find_jlink_dll():
     return None
 
 
-def rtt_capture(channel, duration_ms, frame_size, fields):
+def rtt_capture(channel, duration_ms, frame_size, fields, mcu_device="Cortex-M4"):
     """抓取 channel 通道 frame_size 定长帧, 按 fields 偏移提取列后统计"""
     dll = find_jlink_dll()
     if not dll:
@@ -42,9 +42,9 @@ def rtt_capture(channel, duration_ms, frame_size, fields):
     try:
         jlink.set_tif(pylink.enums.JLinkInterfaces.SWD)
         try:
-            jlink.connect("HC32F460KETA", speed=4000)
+            jlink.connect(mcu_device, speed=4000)
         except Exception:
-            jlink.connect("Cortex-M0+", speed=4000)
+            jlink.connect("Cortex-M4", speed=4000)
 
         # Attach 模式，不复位，启动指定通道的 RTT
         for _ in range(40):
@@ -57,6 +57,12 @@ def rtt_capture(channel, duration_ms, frame_size, fields):
             except Exception:
                 pass
             time.sleep(0.05)
+
+        # 清空历史积压数据，防止新旧状态混合
+        while True:
+            trash = jlink.rtt_read(channel, 8192)
+            if not trash:
+                break
 
         timeout_s = duration_ms / 1000.0
         start = time.time()
@@ -93,14 +99,21 @@ def rtt_capture(channel, duration_ms, frame_size, fields):
     }
     data = np.frombuffer(valid, dtype=dtype_spec)
 
+    def _safe(val):
+        try:
+            v = float(val)
+            return 0.0 if np.isnan(v) or np.isinf(v) else v
+        except (ValueError, TypeError):
+            return 0.0
+
     metrics = {}
     for f in fields:
         col = data[f["name"]]
         metrics[f["name"]] = {
-            "min": float(np.min(col)),
-            "max": float(np.max(col)),
-            "mean": float(np.mean(col)),
-            "variance": float(np.var(col)),
+            "min": _safe(np.nanmin(col)),
+            "max": _safe(np.nanmax(col)),
+            "mean": _safe(np.nanmean(col)),
+            "variance": _safe(np.nanvar(col)),
         }
 
     return {"status": "success", "duration_ms": duration_ms, "frames_captured": frames_captured, "metrics": metrics}
@@ -115,10 +128,19 @@ def main():
     parser.add_argument("--config", default="project_config.yaml")
     args = parser.parse_args()
 
-    # 读 YAML 获取 MCU 型号 (不传 fields 时不强依赖)
+    # 读 YAML 获取 MCU 型号
+    mcu_device = "Cortex-M4"
+    try:
+        if Path(args.config).exists():
+            with open(args.config, 'r', encoding='utf-8') as f:
+                cfg = yaml.safe_load(f)
+                mcu_device = cfg.get("hardware", {}).get("mcu", mcu_device)
+    except Exception:
+        pass
+
     fields = json.loads(args.fields)
 
-    result = rtt_capture(args.channel, args.duration, args.frame_size, fields)
+    result = rtt_capture(args.channel, args.duration, args.frame_size, fields, mcu_device=mcu_device)
     if sys.stdout.encoding != "utf-8":
         sys.stdout.reconfigure(encoding="utf-8")
     print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
