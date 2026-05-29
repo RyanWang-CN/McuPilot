@@ -1,8 +1,13 @@
 # McuPilot 桌面配置向导 — 设计文档
 
+> **注意：本文档为早期设计草稿，实际实现已偏离文档描述。**
+> 当前实现见源码 `run_setup.py` + `core/project_wizard.py`。
+> 主要差异：GUI 采用 PyWebView 而非 CustomTkinter；COM 注入改为 XML 注入；
+> 部署流程增加了 main.c 自动注入步骤；exe 打包策略不同。
+
 ## 概述
 
-打包为单个 `McuPilot_Setup.exe`，置于项目根目录下，用户双击即可完成从环境检测到项目部署的全部配置。无需手动安装 Python、无需命令行、无需编辑配置文件。
+打包为单个 `McuPilot.exe`，用户双击即可完成从环境检测到项目部署的全部配置。
 
 **exe 定位规则**：exe 必须放在 `McuPilot` 根目录，通过 `sys.executable` 父目录找到同目录下的 `core/`、`skills/`、`HIL/`、`RTT/`、`requirements.txt`。这些源文件保留在磁盘上——exe 只打包 GUI 框架依赖，不打包项目模块。原因是部署阶段的子进程（编译、解析等）需要系统 Python 通过 `python -m core.xxx` 调用磁盘上的模块。
 

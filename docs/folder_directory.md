@@ -14,7 +14,7 @@
 ├── skills\                      <-- [业务技能层]
 │   ├── build\                   # compile_auto / flash_auto / reset
 │   ├── injection\               # mcp_hil_bridge（HIL 热注入核心）
-│   └── perception\              # monitor_rtt_auto / rtt_exchange_auto / rtt_listener
+│   └── perception\              # monitor_rtt_auto / rtt_exchange_auto / rtt_capture
 │
 ├── HIL\                         <-- [MCU 固件底座] 热更新注入代码
 │   ├── hil_inject.c / hil_inject.h    # 注入逻辑实现

@@ -126,11 +126,6 @@ def rtt_capture(channel: int, duration_ms: int, format: str = None, count: int =
     return run_module("skills.perception.rtt_capture",
                       ["--channel", str(channel), "--duration", str(duration_ms)] + extra)
 
-@mcp.tool()
-def take_sensor_snapshot(duration_ms: int = 500) -> str:
-    """阻塞式抓取传感器的纯二进制数据帧，并离线解算返回统计特征。"""
-    return run_module("skills.perception.rtt_listener", ["--duration", str(duration_ms)])
-
 # ==================== 4. 物理内存注入平面 ====================
 
 @mcp.tool()
