@@ -107,6 +107,15 @@ def rtt_ask(command: str, timeout: int = 3) -> str:
     return run_module("skills.perception.rtt_exchange_auto", [command, "--timeout", str(timeout)])
 
 @mcp.tool()
+def rtt_capture(channel: int, duration_ms: int, frame_size: int, fields_json: str) -> str:
+    """通用 RTT 二进制数据采集。Channel 分离，定长 frame_size 切帧，按 fields 偏移提取后算 min/max/mean/variance。
+    fields_json 格式: '[{"name":"ocp_flag","offset":0,"type":"u8"},{"name":"dpc_val","offset":4,"type":"f32"}]'
+    支持类型: u8/u16/u32/i8/i16/i32/f32。"""
+    return run_module("skills.perception.rtt_capture",
+                      ["--channel", str(channel), "--duration", str(duration_ms),
+                       "--frame-size", str(frame_size), "--fields", fields_json])
+
+@mcp.tool()
 def take_sensor_snapshot(duration_ms: int = 500) -> str:
     """阻塞式抓取传感器的纯二进制数据帧，并离线解算返回统计特征。"""
     return run_module("skills.perception.rtt_listener", ["--duration", str(duration_ms)])
