@@ -60,6 +60,12 @@ class MCUInjector:
                 self.jlink = pylink.JLink()
                 
             self.jlink.open()
+            # open() 后立刻读电压，connect() 后可能失效
+            try:
+                hw = self.jlink.hardware_status
+                self._cached_voltage = getattr(hw, 'VTarget', 0)
+            except Exception:
+                self._cached_voltage = 0
             self.jlink.set_tif(pylink.enums.JLinkInterfaces.SWD)
             # 尝试用精准型号连接（以解锁特定 Flash/RAM 算法）
             self.jlink.connect(target_mcu, speed=4000)
@@ -139,13 +145,7 @@ class MCUInjector:
             "emulator_sn": getattr(self.jlink, 'serial_number', 'Unknown')
         }
         
-        # 安全读取电压（兼容外部供电目标板）
-        try:
-            hw = self.jlink.hardware_status
-            v = getattr(hw, 'VTarget', 0)
-            info["target_voltage_mV"] = v
-        except Exception:
-            info["target_voltage_mV"] = 0
+        info["target_voltage_mV"] = getattr(self, '_cached_voltage', 0)
             
         # 安全读取 CPU 内核名称
         try:
