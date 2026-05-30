@@ -179,7 +179,7 @@ pywin32>=305
 │  │ 工程路径:     C:\Projects\hc32_radar           │    │
 │  │ 芯片型号:     HC32F460                        │    │
 │  │ 热修参数:     3 个 (threshold, gain, ...)      │    │
-│  │ AI 客户端:    Claude Code, Cline            │    │
+│  │ AI 客户端:    Claude Code, Cline, Codex      │    │
 │  └──────────────────────────────────────────────┘    │
 │                                                      │
 │  [开始部署]                                           │
