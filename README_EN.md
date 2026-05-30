@@ -2,14 +2,14 @@
 
 > AI-powered MCU automation gateway — control, debug, and test embedded systems through natural language.
 
-McuPilot bridges AI assistants (Claude Code, Cline, etc.) with MCU hardware via the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). It turns AI into the "brain" of your embedded development workflow, capable of compiling firmware, flashing, reading sensor data, injecting HIL test parameters, and hardware debugging — all through natural language commands.
+McuPilot bridges AI assistants (Claude Code, Cline, Codex) with MCU hardware via the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). It turns AI into the "brain" of your embedded development workflow, capable of compiling firmware, flashing, reading sensor data, injecting HIL test parameters, and hardware debugging — all through natural language commands.
 
 ## Architecture
 
 ```
 +-------------------+     +-------------------+     +------------------+
 |   AI Brain Layer  | --> |  MCP Skills Hub   | --> |   MCU Hardware   |
-| (Claude/Cline) |     | (FastMCP Server)  |     | (HDSC HC32 MCU)  |
+| (Claude/Cline/Codex) |     | (FastMCP Server)  |     | (HDSC HC32 MCU)  |
 +-------------------+     +-------------------+     +------------------+
 ```
 
@@ -32,7 +32,7 @@ Three skill categories exposed as MCP tools:
 - Python 3.10+
 - [SEGGER J-Link Software](https://www.segger.com/downloads/jlink/) (v7.x+)
 - [Keil MDK](https://www.keil.com/download/product/) v5 (for building/flashing)
-- An AI assistant that supports MCP tools (Claude Code, Cline, etc.)
+- An AI assistant that supports MCP tools (Claude Code, Cline, Codex)
 
 ## Installation
 

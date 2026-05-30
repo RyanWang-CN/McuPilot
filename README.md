@@ -70,7 +70,7 @@
 - Python 3.10+
 - [SEGGER J-Link Software](https://www.segger.com/downloads/jlink/)（v7.x+）
 - [Keil MDK](https://www.keil.com/download/product/) v5（用于编译和烧录）
-- 支持 MCP Tool 的 AI 助手（Claude Code、Cline 等）
+- 支持 MCP Tool 的 AI 助手（Claude Code、Cline、Codex）
 
 ## 快速开始
 

@@ -290,8 +290,8 @@ subprocess.run(
 | 客户端 | 配置文件路径 | 写入内容 |
 |--------|-------------|---------|
 | Claude Code | `%USERPROFILE%\.claude\claude.json` | JSON: `{"mcpServers": {"mcupilot": {...}}}` |
-| Cline | `%USERPROFILE%\.cline\settings\cline_mcp_settings.json` | 标准 MCP JSON 配置 |
-| Codex | `%USERPROFILE%\.codex\config.toml` | TOML: `[[mcp_servers]]` |
+| Cline | `%APPDATA%\Code\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json` | 标准 MCP JSON 配置 |
+| Codex | `%USERPROFILE%\.codex\config.toml` | TOML: `[mcp_servers.mcupilot]` |
 
 - 如果配置文件已存在包含其他 MCP Server，做增量合并而非覆盖
 
