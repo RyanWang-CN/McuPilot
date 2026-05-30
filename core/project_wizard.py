@@ -535,7 +535,7 @@ def register_mcp(project_path, clients, tools_root, python_path=None):
         elif client == "Cline":
             path = os.path.expandvars(r"%APPDATA%\Code\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json")
             results.append(_write_json(path, mcp_config))
-        elif client == "Codex CLI":
+        elif client == "Codex":
             path = os.path.expandvars(r"%USERPROFILE%\.codex\config.toml")
             results.append(_write_codex_toml(path, mcp_cmd, mcp_path, project_path, tools_root))
     ok = all(r[0] for r in results)

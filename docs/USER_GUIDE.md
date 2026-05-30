@@ -20,7 +20,7 @@
 1. 浏览或输入 Keil 工程目录（含 .uvprojx）
 2. 自动检测：芯片型号 / Keil 路径 / J-Link 连接状态
 3. 填写可热修参数表（变量名、类型、默认值）
-4. 勾选要注册的 AI 客户端（Claude Code / Cline / Codex CLI）
+4. 勾选要注册的 AI 客户端（Claude Code / Cline / Codex）
 
 ## 第四步：一键部署
 

@@ -41,7 +41,7 @@
         │   │   ├─ 列：变量名 | 类型(下拉) | 默认值 | 删除按钮
         │   │   └─ [+ 添加参数] 按钮
         │   ├─ 勾选 AI 客户端
-        │   │   ☐ Claude Code    ☐ Cline    ☐ Codex CLI
+        │   │   ☐ Claude Code    ☐ Cline    ☐ Codex
         │   └─ [下一步] 按钮
         │
         ├─ 【页面二：确认部署】
@@ -155,7 +155,7 @@ pywin32>=305
 │  [+ 添加参数]                                         │
 │                                                      │
 │  ◉ AI 客户端                                         │
-│  ☑ Claude Code    ☑ Cline    ☐ Codex CLI          │
+│  ☑ Claude Code    ☑ Cline    ☐ Codex          │
 │                                                      │
 │                              [上一步]  [下一步 ▸]      │
 └──────────────────────────────────────────────────────┘
@@ -291,7 +291,7 @@ subprocess.run(
 |--------|-------------|---------|
 | Claude Code | `%USERPROFILE%\.claude\claude.json` | JSON: `{"mcpServers": {"mcupilot": {...}}}` |
 | Cline | `%USERPROFILE%\.cline\settings\cline_mcp_settings.json` | 标准 MCP JSON 配置 |
-| Codex CLI | `%USERPROFILE%\.codex\config.toml` | TOML: `[[mcp_servers]]` |
+| Codex | `%USERPROFILE%\.codex\config.toml` | TOML: `[[mcp_servers]]` |
 
 - 如果配置文件已存在包含其他 MCP Server，做增量合并而非覆盖
 
