@@ -537,7 +537,7 @@ def register_mcp(project_path, clients, tools_root, python_path=None):
             results.append(_write_json(path, mcp_config))
         elif client == "Codex CLI":
             path = os.path.expandvars(r"%USERPROFILE%\.codex\config.toml")
-            results.append(_write_codex_toml(path, mcp_path))
+            results.append(_write_codex_toml(path, mcp_cmd, mcp_path, project_path, tools_root))
     ok = all(r[0] for r in results)
     msg = ", ".join(r[1] for r in results)
     return ok, msg
@@ -559,16 +559,75 @@ def _write_json(path, new_cfg):
     except Exception as e:
         return False, str(e)[:40]
 
-def _write_codex_toml(path, mcp_path):
+def _toml_literal(value):
+    """Return a TOML basic string with Windows paths escaped safely."""
+    return json.dumps(str(value), ensure_ascii=False)
+
+def _strip_codex_mcupilot_blocks(text):
+    """Remove existing mcupilot MCP blocks, including the legacy array-table form."""
+    import re
+    lines = text.splitlines()
+    result = []
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if line in ("[mcp_servers.mcupilot]", "[mcp_servers.mcupilot.env]"):
+            i += 1
+            while i < len(lines):
+                nxt = lines[i].strip()
+                if nxt.startswith("[") and nxt.endswith("]"):
+                    break
+                i += 1
+            continue
+
+        if line == "[[mcp_servers]]":
+            block_start = i
+            block = [lines[i]]
+            i += 1
+            while i < len(lines):
+                nxt = lines[i].strip()
+                if nxt.startswith("[") and nxt.endswith("]"):
+                    break
+                block.append(lines[i])
+                i += 1
+            if re.search(r'^\s*name\s*=\s*["\']mcupilot["\']\s*$', "\n".join(block), re.MULTILINE):
+                continue
+            result.extend(lines[block_start:i])
+            continue
+
+        result.append(lines[i])
+        i += 1
+
+    return "\n".join(result).rstrip()
+
+def _write_codex_toml(path, mcp_cmd, mcp_path, project_path, tools_root):
     try:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         existing = ""
         if os.path.exists(path):
             with open(path, encoding="utf-8") as f:
                 existing = f.read()
-        entry = f'\n[[mcp_servers]]\nname = "mcupilot"\ncommand = "{sys.executable}"\nargs = ["{mcp_path}"]\n'
+        existing = _strip_codex_mcupilot_blocks(existing)
+        project_abs = os.path.abspath(project_path)
+        entry = "\n".join([
+            "[mcp_servers.mcupilot]",
+            f"command = {_toml_literal(mcp_cmd)}",
+            "args = [",
+            f"  {_toml_literal(mcp_path)},",
+            f"  {_toml_literal('--project')},",
+            f"  {_toml_literal(project_abs)},",
+            "]",
+            "startup_timeout_sec = 120",
+            "",
+            "[mcp_servers.mcupilot.env]",
+            f"PYTHONIOENCODING = {_toml_literal('utf-8')}",
+            f"PYTHONPATH = {_toml_literal(tools_root)}",
+            f"MCUPILOT_PROJECT = {_toml_literal(project_abs)}",
+            "",
+        ])
+        content = (existing + "\n\n" + entry).lstrip() if existing else entry
         with open(path, "w", encoding="utf-8") as f:
-            f.write(existing + entry)
+            f.write(content)
         return True, "codex"
     except Exception as e:
         return False, str(e)[:40]
