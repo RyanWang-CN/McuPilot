@@ -14,6 +14,10 @@
   <img src="https://img.shields.io/badge/Core-M0~M4-ff6b35" alt="Core"/>
   <img src="https://img.shields.io/badge/Debug-JLink-003d5c" alt="J-Link"/>
   <img src="https://img.shields.io/badge/IDE-Keil_MDK-0090d4" alt="Keil"/>
+  <br/>
+  <img src="https://img.shields.io/badge/AI-Claude_Code-d97706" alt="Claude Code"/>
+  <img src="https://img.shields.io/badge/AI-Cline-8b5cf6" alt="Cline"/>
+  <img src="https://img.shields.io/badge/AI-Codex-16a34a" alt="Codex"/>
 </p>
 
 **McuPilot** 是面向 Cortex-M 架构的运行时 AI 协同工具链。通过 [MCP 协议](https://modelcontextprotocol.io/)，为 AI 提供编译、烧录、热修参数、高速数据采集、硬件在环等全套单片机操作能力。专为高速控制场景设计（如 30μs 响应链路），依托 J-Link SWD 总线，无需 UART、无需停机。
